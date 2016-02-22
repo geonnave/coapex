@@ -18,6 +18,24 @@ defmodule EncoderTest do
   end
 
   test "set Message code works" do
-    #msg = Coapex.Encoder.set_code(%Message{}, "")
+    msg = Coapex.Encoder.set_code(%Message{}, {2, 05})
+    assert msg.code == <<2 :: size(3), 5 :: size(5)>>
+
+    msg = Coapex.Encoder.set_code(%Message{}, "2.05")
+    assert msg.code == <<2 :: size(3), 5 :: size(5)>>
+
+    msg = Coapex.Encoder.set_code(%Message{}, 205)
+    assert msg.code == <<2 :: size(3), 5 :: size(5)>>
+  end
+  test "set Message invalid codes raises error" do
+    assert_raise RuntimeError, fn -> Coapex.Encoder.set_code(%Message{}, 123) end
+    assert_raise RuntimeError, fn -> Coapex.Encoder.set_code(%Message{}, 303) end
+    assert_raise RuntimeError, fn -> Coapex.Encoder.set_code(%Message{}, 666) end
+    assert_raise RuntimeError, fn -> Coapex.Encoder.set_code(%Message{}, 700) end
+  end
+
+  test "set Message id works" do
+    msg = Coapex.Encoder.set_msg_id(%Message{}, 1)
+    msg = Coapex.Encoder.set_msg_id(%Message{}, 100)
   end
 end
