@@ -15,6 +15,23 @@ defmodule Coapex.Encoder do
   alias Coapex.Message
 
   @types [con: 0, non: 1, ack: 2, rst: 3]
+  @options [
+    "If-Match":        1,
+    "Uri-Host":        3,
+    "ETag":            4,
+    "If-None-Match":   5,
+    "Uri-Port":        7,
+    "Location-Path":   8,
+    "Uri-Path":       11,
+    "Content-Format": 12,
+    "Max-Age":        14,
+    "Uri-Query":      15,
+    "Accept":         17,
+    "Location-Query": 20,
+    "Proxy-Uri":      35,
+    "Proxy-Scheme":   39,
+    "Size1":          60
+  ]
 
   def encode({type, token, code, msg_id, options, payload}) do
     %Message{version: <<1 :: size(2)>>}
@@ -75,6 +92,32 @@ defmodule Coapex.Encoder do
     Value itself.
   """
   def set_options(msg, options) do
+    options = Enum.sort(options, fn({o1, _v1}, {o2, _v2}) -> @options[o1] < @options[o2] end)
+  end
+
+  def build_options(options), do: build_options(options, 0)
+  def build_options([], _prev_num), do: <<>>
+  def build_options(options = [opt = {op, value} | rest], prev_num) do
+    delta = @options[op] - prev_num
+    build_binary_option(delta, value) <> build_options(rest, delta)
+  end
+
+  def build_binary_option(delta, value) do
+    opt_len = String.length(value)
+    case delta do
+      delta when delta in 0..12 ->
+        <<delta::unsigned-integer-size(4),
+          opt_len::unsigned-integer-size(4),
+          value::binary>>
+        delta ->
+        raise "Not implemented yet"
+    end
+  end
+
+  def measure_option(op, value, prev_num) do
+    delta = @options[op] - prev_num
+    opt_len = String.length(value)
+    [delta, opt_len, opt_len*8]
   end
 
 end
