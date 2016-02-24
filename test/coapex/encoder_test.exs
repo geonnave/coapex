@@ -41,8 +41,25 @@ defmodule EncoderTest do
     assert msg.msg_id == <<100::unsigned-integer-size(16)>>
   end
 
+  test "number to binary" do
+    assert Coapex.Encoder.number_to_binary(3) == <<3>>
+    assert Coapex.Encoder.number_to_binary(255) == <<255>>
+    assert Coapex.Encoder.number_to_binary(256) == <<0, 1>>
+    assert Coapex.Encoder.number_to_binary(257) == <<1, 1>>
+  end
+  test "integer value to binary" do
+    assert Coapex.Encoder.value_to_binary(3) == <<3>>
+    assert Coapex.Encoder.value_to_binary("a") == <<97>>
+  end
   test "build Message option" do
-    assert <<3::size(4), 7::size(4), "foo.bar"::binary>> == Coapex.Encoder.build_binary_option 3, "foo.bar"
+    expected = <<3::size(4), 7::size(4), "foo.bar"::binary>>
+    assert expected == Coapex.Encoder.build_binary_option 3, "foo.bar"
+
+    expected = <<7::size(4), 1::size(4), 11::unsigned-integer>>
+    assert expected == Coapex.Encoder.build_binary_option 7, 11
+
+    expected = <<7::size(4), 2::size(4), 0::unsigned-integer, 1::unsigned-integer>>
+    assert expected == Coapex.Encoder.build_binary_option 7, 256
   end
   test "build Message options" do
     opts = Coapex.Encoder.build_options ["Uri-Host": "foo.bar", "Uri-Path": "baz"]

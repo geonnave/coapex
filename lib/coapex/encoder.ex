@@ -14,6 +14,8 @@ end
 defmodule Coapex.Encoder do
   alias Coapex.Message
 
+  use Bitwise
+
   @types [con: 0, non: 1, ack: 2, rst: 3]
   @options [
     "If-Match":        1,
@@ -103,21 +105,37 @@ defmodule Coapex.Encoder do
   end
 
   def build_binary_option(delta, value) do
-    opt_len = String.length(value)
+    binary_value = value_to_binary(value)
+    build_binary_option_header(delta, String.length(binary_value)) <> binary_value
+  end
+
+  def build_binary_option_header(delta, opt_len) do
     case delta do
       delta when delta in 0..12 ->
         <<delta::unsigned-integer-size(4),
-          opt_len::unsigned-integer-size(4),
-          value::binary>>
-        delta ->
+          opt_len::unsigned-integer-size(4)>>
+      delta ->
         raise "Not implemented yet"
     end
   end
 
-  def measure_option(op, value, prev_num) do
-    delta = @options[op] - prev_num
-    opt_len = String.length(value)
-    [delta, opt_len, opt_len*8]
+  def value_to_binary(value) when is_binary(value), do: <<value::binary>>
+  def value_to_binary(value) when is_number(value) do
+    cond do
+      value < 0 ->
+        raise "invalid value"
+      value > (2 <<< 32) ->
+        raise "invalid value"
+      true ->
+        number_to_binary(value)
+    end
+  end
+
+  def number_to_binary(number), do: number_to_binary(number, 0)
+  def number_to_binary(number, 32), do: <<(number &&& 0xFF)>>
+  def number_to_binary(0, _shift), do: <<>>
+  def number_to_binary(number, shift) do
+    <<(number &&& 0xFF)>> <> number_to_binary(number >>> shift+8, shift+8)
   end
 
 end
