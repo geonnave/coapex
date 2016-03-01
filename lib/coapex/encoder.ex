@@ -35,6 +35,8 @@ defmodule Coapex.Encoder do
     "Size1":          60
   ]
 
+  def options, do: @options
+
   def encode({type, token, code, msg_id, options, payload}) do
     %Message{version: <<1 :: size(2)>>}
     |> set_type(type)
@@ -95,6 +97,7 @@ defmodule Coapex.Encoder do
   """
   def set_options(msg, options) do
     options = Enum.sort(options, fn({o1, _v1}, {o2, _v2}) -> @options[o1] < @options[o2] end)
+    %Message{msg | options: build_options(options)}
   end
 
   def build_options(options), do: build_options(options, 0)
