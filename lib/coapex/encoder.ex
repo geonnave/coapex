@@ -100,11 +100,46 @@ defmodule Coapex.Encoder do
     %Message{msg | options: build_options(options)}
   end
 
+  @doc """
+  Encode options as binary fields, recursively.
+
+  Each option is a binary chunk as below represented:
+  0   1   2   3   4   5   6   7
+  +---------------+---------------+
+  |               |               |
+  |  Option Delta | Option Length |   1 byte
+  |               |               |
+  +---------------+---------------+
+  \                               \
+  /         Option Delta          /   0-2 bytes
+  \          (extended)           \
+  +-------------------------------+
+  \                               \
+  /         Option Length         /   0-2 bytes
+  \          (extended)           \
+  +-------------------------------+
+  \                               \
+  /                               /
+  \                               \
+  /         Option Value          /   0 or more bytes
+  \                               \
+  /                               /
+  \                               \
+  +-------------------------------+
+
+  Figure 8: Option Format (taken from RFC7252)
+  """
   def build_options(options), do: build_options(options, 0)
-  def build_options([], _prev_num), do: <<>>
-  def build_options(options = [opt = {op, value} | rest], prev_num) do
-    delta = @options[op] - prev_num
-    build_binary_option(delta, value) <> build_options(rest, delta)
+  def build_options([], _prev_delta), do: <<>>
+  def build_options(options = [opt = {op, value} | rest], prev_delta) do
+    delta = @options[op] - prev_delta
+    value = value_to_binary(value)
+
+    {del, ext_del} = gen_option_header(delta)
+    {len, ext_len} = gen_option_header(String.length(value))
+
+    <<del::bitstring, len::bitstring,
+      ext_del::bitstring, ext_len::bitstring, value::bitstring>> <> build_options(rest, delta)
   end
 
   @doc """
@@ -126,28 +161,17 @@ defmodule Coapex.Encoder do
   The same rules apply for building the Option Length field. Thus, the
    function below is useful for generating both Delta and Length fields.
   """
-  def gen_option_header(value) when value in 0..12, do: {:simple, <<value::size(4)>>}
+  def gen_option_header(value) when value in 0..12, do: {<<value::unsigned-integer-size(4)>>, <<>>}
   def gen_option_header(value) when value > 12 and value <= 255 do
-    {:extra, {<<13::unsigned-integer-size(4)>>, <<(value-13)::unsigned-integer-size(8)>>}}
+    {<<13::unsigned-integer-size(4)>>, <<(value-13)::unsigned-integer-size(8)>>}
   end
   def gen_option_header(value) when value > 255 and value < (2 <<< 16) do
-    {:extra, {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}}
+    {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}
   end
   def gen_option_header(_), do: raise "Invalid value"
 
-  def build_binary_option(delta, value) do
-    binary_value = value_to_binary(value)
-    build_binary_option_header(delta, String.length(binary_value)) <> binary_value
-  end
-
-  def build_binary_option_header(delta, opt_len) do
-    case delta do
-      delta when delta in 0..12 ->
-        <<delta::unsigned-integer-size(4),
-          opt_len::unsigned-integer-size(4)>>
-      delta ->
-        raise "Not implemented yet"
-    end
+  def build_binary_option_header(_delta = {delta, ext_delta}, _len = {len, ext_len}, value) do
+    delta <> len <> ext_delta <> ext_len <> value
   end
 
   def value_to_binary(value) when is_binary(value), do: <<value::binary>>

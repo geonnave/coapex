@@ -54,21 +54,21 @@ defmodule EncoderTest do
     assert Coapex.Encoder.value_to_binary("a") == <<97>>
   end
 
-  test "build Message option" do
-    expected = <<3::size(4), 7::size(4), "foo.bar"::binary>>
-    assert expected == Coapex.Encoder.build_binary_option 3, "foo.bar"
+# test "build Message option" do
+#   expected = <<3::size(4), 7::size(4), "foo.bar"::binary>>
+#   assert expected == Coapex.Encoder.build_binary_option 3, "foo.bar"
 
-    expected = <<7::size(4), 1::size(4), 11::unsigned-integer>>
-    assert expected == Coapex.Encoder.build_binary_option 7, 11
+#   expected = <<7::size(4), 1::size(4), 11::unsigned-integer>>
+#   assert expected == Coapex.Encoder.build_binary_option 7, 11
 
-    expected = <<7::size(4), 2::size(4), 0::unsigned-integer, 1::unsigned-integer>>
-    assert expected == Coapex.Encoder.build_binary_option 7, 256
-  end
+#   expected = <<7::size(4), 2::size(4), 0::unsigned-integer, 1::unsigned-integer>>
+#   assert expected == Coapex.Encoder.build_binary_option 7, 256
+# end
 
   test "build option delta" do
-    assert {:simple, <<(11-3)::size(4)>>} == Encoder.gen_option_header(11-3)
-    assert {:extra, {<<13::size(4)>>, <<(60-15-13)::size(8)>>}} == Encoder.gen_option_header(60-15)
-    assert {:extra, {<<14::size(4)>>, <<(600-15-269)::size(16)>>}} == Encoder.gen_option_header(600-15)
+    assert {<<(11-3)::size(4)>>, <<>>} == Encoder.gen_option_header(11-3)
+    assert {<<13::size(4)>>, <<(60-15-13)::size(8)>>} == Encoder.gen_option_header(60-15)
+    assert {<<14::size(4)>>, <<(600-15-269)::size(16)>>} == Encoder.gen_option_header(600-15)
   end
 
   test "build Message options" do
