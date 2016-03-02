@@ -65,6 +65,12 @@ defmodule EncoderTest do
     assert expected == Coapex.Encoder.build_binary_option 7, 256
   end
 
+  test "build option delta" do
+    assert {:simple, <<(11-3)::size(4)>>} == Encoder.gen_option_header(11-3)
+    assert {:extra, {<<13::size(4)>>, <<(60-15-13)::size(8)>>}} == Encoder.gen_option_header(60-15)
+    assert {:extra, {<<14::size(4)>>, <<(600-15-269)::size(16)>>}} == Encoder.gen_option_header(600-15)
+  end
+
   test "build Message options" do
     [delta_urihost, len_urihost] = [Encoder.options[:"Uri-Host"], String.length("foo.bar")]
     [delta_uripath, len_uripath] = [Encoder.options[:"Uri-Path"]-delta_urihost, String.length("baz")]

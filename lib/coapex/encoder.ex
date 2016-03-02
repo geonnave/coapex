@@ -107,6 +107,34 @@ defmodule Coapex.Encoder do
     build_binary_option(delta, value) <> build_options(rest, delta)
   end
 
+  @doc """
+  from RFC7252:
+    Option Delta:  4-bit unsigned integer.  A value between 0 and 12
+    indicates the Option Delta.  Three values are reserved for special
+    constructs:
+
+    13:  An 8-bit unsigned integer follows the initial byte and
+    indicates the Option Delta minus 13.
+
+    14:  A 16-bit unsigned integer in network byte order follows the
+    initial byte and indicates the Option Delta minus 269.
+
+    15:  Reserved for the Payload Marker.  If the field is set to this
+    value but the entire byte is not the payload marker, this MUST
+    be processed as a message format error.
+
+  The same rules apply for building the Option Length field. Thus, the
+   function below is useful for generating both Delta and Length fields.
+  """
+  def gen_option_header(value) when value in 0..12, do: {:simple, <<value::size(4)>>}
+  def gen_option_header(value) when value > 12 and value <= 255 do
+    {:extra, {<<13::unsigned-integer-size(4)>>, <<(value-13)::unsigned-integer-size(8)>>}}
+  end
+  def gen_option_header(value) when value > 255 and value < (2 <<< 16) do
+    {:extra, {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}}
+  end
+  def gen_option_header(_), do: raise "Invalid value"
+
   def build_binary_option(delta, value) do
     binary_value = value_to_binary(value)
     build_binary_option_header(delta, String.length(binary_value)) <> binary_value
