@@ -1,4 +1,10 @@
 defmodule Coapex.Message do
+  @moduledoc """
+  The Message struct is supposed to be filled by the user,
+  with user-friendly types like strings and integers; also,
+  the user will probably use Message.options and Message.types
+  helper functions for building
+  """
   defstruct [:type, :token, :code, :msg_id, :options, :payload]
 
   def options, do: [
@@ -27,6 +33,14 @@ defmodule Coapex.Encoder do
 
   use Bitwise
 
+  @doc """
+  Transforms a Message struct into a binary Coap Message.
+
+  The Message struct is built by the user. It must then be transformed into a
+   binary chunk, according to RFC7252, which specifies the Coap Message Format.
+
+  The output of this function is meant to be transmitted down to peers via UDP.
+  """
   def encode(%Message{type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
     {token, tk_len} = encode_token(tk)
     <<Message.version()::bitstring, encode_type(t)::bitstring, tk_len::bitstring, encode_code(c)::bitstring,
