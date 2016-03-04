@@ -37,12 +37,23 @@ defmodule Coapex.Encoder do
 
   def options, do: @options
 
-  def encode({type, token, code, msg_id, options, payload}) do
+  def build_msg({type, token, code, msg_id, options, payload}) do
     %Message{version: <<1 :: size(2)>>}
     |> set_type(type)
     |> set_token(token)
     |> set_code(code)
     |> set_msg_id(msg_id)
+    |> set_options(options)
+    |> set_payload(payload)
+  end
+
+  def encode(msg = {_type, _token, _code, _msg_id, _options, _payload}) do
+    msg |> build_msg |> encode
+  end
+  def encode(msg = %Message{}) do
+    IO.inspect msg
+    <<(msg.version)::bitstring, (msg.type)::bitstring, (msg.tk_len)::bitstring, msg.code,
+      msg.msg_id, msg.options, 0xFF, msg.payload>>
   end
 
   @doc """
@@ -74,7 +85,7 @@ defmodule Coapex.Encoder do
   def set_code(msg, code) when is_integer(code) do
     set_code(msg, {div(code, 100), rem(code, 100)})
   end
-  def set_code(msg, << class, ".", detail :: binary>> = code) do
+  def set_code(msg, << class, ".", detail :: binary>>) do
     set_code(msg, {class-48, String.to_integer(detail)})
   end
   def set_code(msg, {class, detail}) when class in [0, 2, 4, 5] do
@@ -88,7 +99,12 @@ defmodule Coapex.Encoder do
   def set_msg_id(msg, id) when id > 0 do
     %Message{msg | msg_id: <<id::unsigned-integer-size(16)>>}
   end
-  def set_msg_id(_msg, _id), do: raise "Invalid id: #{_id}"
+  def set_msg_id(_msg, _id), do: raise "Invalid id"
+
+  def set_payload(msg, payload) when is_binary(payload) do
+    %Message{msg | payload: payload}
+  end
+  def set_payload(msg, payload), do: set_payload(msg, value_to_binary(payload))
 
   @doc """
   Each option instance in a message specifies the Option Number of the
@@ -96,7 +112,17 @@ defmodule Coapex.Encoder do
     Value itself.
   """
   def set_options(msg, options) do
-    options = Enum.sort(options, fn({o1, _v1}, {o2, _v2}) -> @options[o1] < @options[o2] end)
+    options =
+      options
+      |> Stream.map(fn({o, v}) ->
+          cond do
+            is_atom(o) and @options[o] -> {@options[o], v}
+            is_integer(o) -> {o, v}
+            true -> nil
+          end
+        end)
+      |> Stream.reject(&is_nil/1)
+      |> Enum.sort(fn({o1, _v1}, {o2, _v2}) -> o1 < o2 end)
     %Message{msg | options: build_options(options)}
   end
 
@@ -131,8 +157,9 @@ defmodule Coapex.Encoder do
   """
   def build_options(options), do: build_options(options, 0)
   def build_options([], _prev_delta), do: <<>>
-  def build_options(options = [opt = {op, value} | rest], prev_delta) do
-    delta = @options[op] - prev_delta
+  def build_options([{op, value} | rest], prev_delta) do
+    delta = op - prev_delta
+
     value = value_to_binary(value)
 
     {del, ext_del} = gen_option_header(delta)
@@ -169,10 +196,6 @@ defmodule Coapex.Encoder do
     {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}
   end
   def gen_option_header(_), do: raise "Invalid value"
-
-  def build_binary_option_header(_delta = {delta, ext_delta}, _len = {len, ext_len}, value) do
-    delta <> len <> ext_delta <> ext_len <> value
-  end
 
   def value_to_binary(value) when is_binary(value), do: <<value::binary>>
   def value_to_binary(value) when is_number(value) do

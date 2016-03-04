@@ -4,6 +4,11 @@ defmodule EncoderTest do
   alias Coapex.Message
   alias Coapex.Encoder
 
+
+  @host_option Encoder.options[:"Uri-Host"]
+  @path_option Encoder.options[:"Uri-Path"]
+  @port_option Encoder.options[:"Uri-Port"]
+
   test "Message set type works" do
     msg = Coapex.Encoder.set_type(%Message{}, :con)
     assert msg.type == <<0 :: size(2)>>
@@ -54,17 +59,6 @@ defmodule EncoderTest do
     assert Coapex.Encoder.value_to_binary("a") == <<97>>
   end
 
-# test "build Message option" do
-#   expected = <<3::size(4), 7::size(4), "foo.bar"::binary>>
-#   assert expected == Coapex.Encoder.build_binary_option 3, "foo.bar"
-
-#   expected = <<7::size(4), 1::size(4), 11::unsigned-integer>>
-#   assert expected == Coapex.Encoder.build_binary_option 7, 11
-
-#   expected = <<7::size(4), 2::size(4), 0::unsigned-integer, 1::unsigned-integer>>
-#   assert expected == Coapex.Encoder.build_binary_option 7, 256
-# end
-
   test "build option delta" do
     assert {<<(11-3)::size(4)>>, <<>>} == Encoder.gen_option_header(11-3)
     assert {<<13::size(4)>>, <<(60-15-13)::size(8)>>} == Encoder.gen_option_header(60-15)
@@ -72,20 +66,20 @@ defmodule EncoderTest do
   end
 
   test "build Message options" do
-    [delta_urihost, len_urihost] = [Encoder.options[:"Uri-Host"], String.length("foo.bar")]
-    [delta_uripath, len_uripath] = [Encoder.options[:"Uri-Path"]-delta_urihost, String.length("baz")]
+    [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
+    [delta_uripath, len_uripath] = [@path_option-delta_urihost, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
-    opts = Coapex.Encoder.build_options ["Uri-Host": "foo.bar", "Uri-Path": "baz"]
+    opts = Coapex.Encoder.build_options [{@host_option, "foo.bar"}, {@path_option, "baz"}]
     assert expected == opts
 
-    [delta_urihost, len_urihost] = [Encoder.options[:"Uri-Host"], String.length("foo.bar")]
-    [delta_uriport, len_uriport] = [Encoder.options[:"Uri-Port"]-delta_urihost, 1]
-    [delta_uripath, len_uripath] = [Encoder.options[:"Uri-Path"]-delta_uriport, String.length("baz")]
+    [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
+    [delta_uriport, len_uriport] = [@port_option-delta_urihost, 1]
+    [delta_uripath, len_uripath] = [@path_option-delta_uriport, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uriport::size(4), len_uriport::size(4), 88,
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
-    opts = Coapex.Encoder.build_options ["Uri-Host": "foo.bar", "Uri-Port": 88, "Uri-Path": "baz"]
+    opts = Coapex.Encoder.build_options [{@host_option, "foo.bar"}, {@port_option, 88}, {@path_option, "baz"}]
     assert expected == opts
   end
 
@@ -96,5 +90,20 @@ defmodule EncoderTest do
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
     msg = Coapex.Encoder.set_options(%Message{}, ["Uri-Path": "baz", "Uri-Host": "foo.bar"])
     assert expected == msg.options
+  end
+
+  test "set Message payload" do
+    msg = Coapex.Encoder.set_payload(%Message{}, "abc")
+    assert "abc" == msg.payload
+    msg = Coapex.Encoder.set_payload(%Message{}, 123)
+    assert <<123>> == msg.payload
+  end
+
+  test "encode Coap Message" do
+    msg = Encoder.build_msg({:con, "", "0.01", 11, ["Uri-Path": "baz", "Uri-Host": "foo.bar"], "abc"})
+    assert msg.payload == "abc"
+
+    bin_msg = Encoder.encode(msg)
+    IO.inspect bin_msg
   end
 end
