@@ -198,7 +198,7 @@ defmodule Coapex.Encoder do
   def number_to_binary(number, 32), do: <<(number &&& 0xFF)>>
   def number_to_binary(0, _shift), do: <<>>
   def number_to_binary(number, shift) do
-    <<(number &&& 0xFF)>> <> number_to_binary(number >>> shift+8, shift+8)
+    <<(number &&& 0xFF)>> <> number_to_binary(number >>> (shift+8), shift+8)
   end
 
 end
