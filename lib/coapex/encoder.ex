@@ -51,9 +51,8 @@ defmodule Coapex.Encoder do
     msg |> build_msg |> encode
   end
   def encode(msg = %Message{}) do
-    IO.inspect msg
-    <<(msg.version)::bitstring, (msg.type)::bitstring, (msg.tk_len)::bitstring, msg.code,
-      msg.msg_id, msg.options, 0xFF, msg.payload>>
+    <<(msg.version)::bitstring, (msg.type)::bitstring, (msg.tk_len)::bitstring, msg.code::bitstring,
+      (msg.msg_id)::bitstring, (msg.options)::bitstring, 0xFF, (msg.payload)::bitstring>>
   end
 
   @doc """
@@ -69,10 +68,10 @@ defmodule Coapex.Encoder do
   The Token is used to match a response with a request.  The token
     value is a sequence of 0 to 8 bytes.
   """
-  def set_token(msg, <<>>), do: %Message{msg | tk_len: 0 }
+  def set_token(msg, <<>>), do: %Message{msg | tk_len: <<0::unsigned-integer-size(4)>>, token: <<>> }
   def set_token(msg, token) when is_binary(token) do
     len = String.length(token)
-    %Message{msg | tk_len: len, token: token }
+    %Message{msg | tk_len: <<len::unsigned-integer-size(4)>>, token: token }
   end
   def set_token(msg, _token), do: msg
 

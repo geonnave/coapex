@@ -16,11 +16,11 @@ defmodule EncoderTest do
 
   test "set Message token works" do
     msg = Coapex.Encoder.set_token(%Message{}, "abc")
-    assert msg.tk_len == 3
+    assert msg.tk_len == <<3::size(4)>>
     assert msg.token == "abc"
     msg = Coapex.Encoder.set_token(%Message{}, "")
-    assert msg.tk_len == 0
-    assert msg.token == nil
+    assert msg.tk_len == <<0::size(4)>>
+    assert msg.token == <<>>
   end
 
   test "set Message code works" do
