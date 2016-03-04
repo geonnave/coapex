@@ -36,6 +36,7 @@ defmodule Coapex.Encoder do
   ]
 
   def options, do: @options
+  def types, do: @types
 
   def build_msg({type, token, code, msg_id, options, payload}) do
     %Message{version: <<1 :: size(2)>>}

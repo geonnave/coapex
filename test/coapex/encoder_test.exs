@@ -103,7 +103,18 @@ defmodule EncoderTest do
     msg = Encoder.build_msg({:con, "", "0.01", 11, ["Uri-Path": "baz", "Uri-Host": "foo.bar"], "abc"})
     assert msg.payload == "abc"
 
+    ver = <<1::size(2)>>
+    type = <<Encoder.types[:con]::size(2)>>
+    tk_len = <<0::size(4)>>
+    code = <<0::size(3), 1::size(5)>>
+    msg_id = <<11::size(16)>>
+    token = <<>>
+    options = Coapex.Encoder.build_options [{@host_option, "foo.bar"}, {@path_option, "baz"}]
+    payload = "abc"
+    expected_msg = <<ver::bitstring, type::bitstring, tk_len::bitstring, code::bitstring,
+                 msg_id::bitstring, token::bitstring, options::bitstring, 0xFF, payload::bitstring>>
+
     bin_msg = Encoder.encode(msg)
-    IO.inspect bin_msg
+    assert expected_msg == bin_msg
   end
 end
