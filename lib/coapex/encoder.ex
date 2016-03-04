@@ -1,9 +1,7 @@
 defmodule Coapex.Message do
   defstruct [:type, :token, :code, :msg_id, :options, :payload]
 
-  @version <<1::size(2)>>
-  @types [con: 0, non: 1, ack: 2, rst: 3]
-  @options [
+  def options, do: [
     "If-Match":        1,
     "Uri-Host":        3,
     "ETag":            4,
@@ -20,10 +18,8 @@ defmodule Coapex.Message do
     "Proxy-Scheme":   39,
     "Size1":          60
   ]
-
-  def options, do: @options
-  def types, do: @types
-  def version, do: @version
+  def types, do: [con: 0, non: 1, ack: 2, rst: 3]
+  def version, do: <<1::size(2)>>
 end
 
 defmodule Coapex.Encoder do
