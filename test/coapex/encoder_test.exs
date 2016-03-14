@@ -24,10 +24,10 @@ defmodule EncoderTest do
     assert <<2::size(3), 5::size(5)>> == Encoder.encode_code(205)
   end
   test "encode invalid codes raises error" do
-    assert_raise RuntimeError, fn -> Encoder.encode_code(123) end
-    assert_raise RuntimeError, fn -> Encoder.encode_code(303) end
-    assert_raise RuntimeError, fn -> Encoder.encode_code(666) end
-    assert_raise RuntimeError, fn -> Encoder.encode_code(700) end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code(123) end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code(303) end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code(666) end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code(700) end
   end
 
   test "encode msg id works" do

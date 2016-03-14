@@ -1,33 +1,3 @@
-defmodule Coapex.Message do
-  @moduledoc """
-  The Message struct is supposed to be filled by the user,
-  with user-friendly types like strings and integers; also,
-  the user will probably use Message.options and Message.types
-  helper functions for building
-  """
-  defstruct [:type, :token, :code, :msg_id, :options, :payload]
-
-  def options, do: [
-    "If-Match":        1,
-    "Uri-Host":        3,
-    "ETag":            4,
-    "If-None-Match":   5,
-    "Uri-Port":        7,
-    "Location-Path":   8,
-    "Uri-Path":       11,
-    "Content-Format": 12,
-    "Max-Age":        14,
-    "Uri-Query":      15,
-    "Accept":         17,
-    "Location-Query": 20,
-    "Proxy-Uri":      35,
-    "Proxy-Scheme":   39,
-    "Size1":          60
-  ]
-  def types, do: [con: 0, non: 1, ack: 2, rst: 3]
-  def version, do: <<1::size(2)>>
-end
-
 defmodule Coapex.Encoder do
   alias Coapex.Message
 
@@ -43,8 +13,10 @@ defmodule Coapex.Encoder do
   """
   def encode(%Message{type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
     {token, tk_len} = encode_token(tk)
-    <<Message.version()::bitstring, encode_type(t)::bitstring, tk_len::bitstring, encode_code(c)::bitstring,
-      encode_msg_id(id)::bitstring, token::bitstring, encode_options(opts)::bitstring, 0xFF, encode_payload(p)::bitstring>>
+    <<Message.version()::bitstring, encode_type(t)::bitstring,
+      tk_len::bitstring, encode_code(c)::bitstring,
+      encode_msg_id(id)::bitstring, token::bitstring,
+      encode_options(opts)::bitstring, 0xFF, encode_payload(p)::bitstring>>
   end
 
   @doc """
@@ -62,7 +34,6 @@ defmodule Coapex.Encoder do
   def encode_token(token) when is_binary(token) do
     {token, <<String.length(token)::unsigned-integer-size(4)>>}
   end
-  def encode_token(_token), do: raise "Invalid token!"
 
   @doc """
   Code: 8-bit unsigned integer, split into a 3-bit class (most
@@ -79,7 +50,6 @@ defmodule Coapex.Encoder do
   def encode_code({class, detail}) when class in [0, 2, 4, 5] do
     <<class :: size(3), detail :: size(5)>>
   end
-  def encode_code(_code), do: raise "Invalid code"
 
   @doc """
   BinaryMessage ID: 16-bit unsigned integer in network byte order.
@@ -87,7 +57,6 @@ defmodule Coapex.Encoder do
   def encode_msg_id(id) when id > 0 and id < (1 <<< 16) do
     <<id::unsigned-integer-size(16)>>
   end
-  def encode_msg_id(_id), do: raise "Invalid id"
 
   def encode_payload(payload) when is_binary(payload), do: payload
   def encode_payload(payload), do: encode_payload(value_to_binary(payload))
@@ -180,7 +149,6 @@ defmodule Coapex.Encoder do
   def gen_option_header(value) when value > 255 and value < (1 <<< 16) do
     {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}
   end
-  def gen_option_header(_), do: raise "Invalid value"
 
   def value_to_binary(value) when is_binary(value), do: <<value::binary>>
   def value_to_binary(value) when is_number(value) do
