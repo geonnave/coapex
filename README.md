@@ -1,20 +1,29 @@
 # Coapex
 
-**TODO: Add description**
+CoAP (rfc7252) stands for Constrained Application Protocol intended for use in embedded devices (e.g IoT stuff).
 
-## Installation
+A quick (but not quite exact) comparison is "CoAP is a HTTP with binary header". CoAP supports REST as well, but it does support further things like "observation" of resources (like a Publish/Subscribe system).
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+# What is Done so far
 
-  1. Add coapex to your list of dependencies in `mix.exs`:
+* Encoder: allows the user to build a CoAP binary message from a `%Message` struct
+```
+iex> msg = %Message{type: :con, token: <<>>, code: "0.01", msg_id: 11,
+               options: ["Uri-Path": "baz", "Uri-Host": "foo.bar"],
+               payload: "abc"}
+iex> Coapex.Encoder.encode(msg)
+<<64, 1, 0, 11, 55, 102, 111, 111, 46, 98, 97, 114, 131, 98, 97, 122, 255, 97, 98, 99>>
+```
 
-        def deps do
-          [{:coapex, "~> 0.0.1"}]
-        end
+# What TODO:
 
-  2. Ensure coapex is started before your application:
-
-        def application do
-          [applications: [:coapex]]
-        end
+* Decoder: convert a CoAP binary message into a friendly `%Message` struct
+```
+iex> bin_msg = <<64, 1, 0, 11, 55, 102, 111, 111, 46, 98, 97, 114, 131, 98, 97, 122, 255, 97, 98, 99>>
+iex> Coapex.Decoder.decode(bin_msg)
+%Message{type: :con, token: <<>>, code: "0.01", msg_id: 11,
+               options: ["Uri-Path": "baz", "Uri-Host": "foo.bar"],
+               payload: "abc"}
+```
+* Server: understand & implement how to serve CoAP resources. Note: CoAP runs over UDP.
 
