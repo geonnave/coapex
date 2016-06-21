@@ -4,7 +4,7 @@ CoAP ([rfc7252](https://tools.ietf.org/html/rfc7252)) stands for Constrained App
 
 A quick (but not quite exact) comparison is "CoAP is a HTTP with binary header". CoAP supports REST as well, but it does support further things like "observation" of resources (like a Publish/Subscribe system).
 
-# What is Done so far
+# What has been Done so far
 
 * Encoder: allows the user to build a CoAP binary message from a `%Message` struct
 ```
