@@ -5,7 +5,7 @@ defmodule MessageTest do
   alias Coapex.Encoder
 
   test "build a simple message" do
-    m = Message.init([])
+    m = Message.init()
   end
 
 end

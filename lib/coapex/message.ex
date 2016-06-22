@@ -7,7 +7,14 @@ defmodule Coapex.Message do
   """
   defstruct [:type, :token, :code, :msg_id, :options, :payload]
 
-  def init(params) do
+  def init([method: method, uri: uri, opts: opts]) do
+    %Coapex.Message{
+      code: method_codes[method],
+      type: types[opts[:type]],
+      token: opts[:token],
+      msg_id: :crypto.strong_rand_bytes(2),
+      payload: opts[:payload],
+    }
   end
 
   def options, do: [
