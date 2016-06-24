@@ -5,7 +5,8 @@ defmodule MessageTest do
   alias Coapex.Encoder
 
   test "build a simple message" do
-    m = Message.init()
+    m = Message.init(:request, :get, "coap://example.com", type: :con, options: ["Accept": "application/json"])
+    IO.inspect m
   end
 
 end

@@ -4,17 +4,36 @@ defmodule Coapex.Message do
   with user-friendly types like strings and integers; also,
   the user will probably use Message.options and Message.types
   helper functions for fulfilling the struct.
+  Note that the `uri` parameter will be used to create
+  specific `options` params (e.g Uri-Host, Uri-Port, etc.)
   """
-  defstruct [:type, :token, :code, :msg_id, :options, :payload]
+  defstruct [:code, :uri, :type, :token, :msg_id, :options, :payload]
 
-  def init([method: method, uri: uri, opts: opts]) do
+  def init(:request, method, uri, opts) do
     %Coapex.Message{
       code: method_codes[method],
+      uri: URI.parse(uri),
       type: types[opts[:type]],
       token: opts[:token],
-      msg_id: :crypto.strong_rand_bytes(2),
       payload: opts[:payload],
+      options: opts[:options],
+      msg_id: :crypto.strong_rand_bytes(2)
     }
+  end
+
+  def init(:response, status, message, opts) do
+    %Coapex.Message{
+      message |
+      code: response_codes[status],
+      type: types[opts[:type]],
+      token: opts[:token],
+      options: opts[:options],
+      payload: opts[:payload]
+    }
+  end
+
+  def encode(message) do
+    message |> Encoder.encode
   end
 
   def options, do: [
