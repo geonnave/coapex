@@ -7,7 +7,17 @@ defmodule Coapex.Message do
   Note that the `uri` parameter will be used to create
   specific `options` params (e.g Uri-Host, Uri-Port, etc.)
   """
-  defstruct [:code, :uri, :type, :token, :msg_id, :options, :payload]
+  defstruct code: nil,
+    uri_host: nil,
+    uri_port: 80,
+    uri_path: "",
+    uri_query: "",
+    type: nil,
+    token: nil,
+    msg_id: nil,
+    options: [],
+    payload: nil
+
 
   def init(:request, method, uri, opts) do
     %Coapex.Message{
