@@ -3,11 +3,12 @@ defmodule EncoderTest do
 
   alias Coapex.Message
   alias Coapex.Encoder
+  alias Coapex.Values
 
 
-  @host_option Message.options[:"Uri-Host"]
-  @path_option Message.options[:"Uri-Path"]
-  @port_option Message.options[:"Uri-Port"]
+  @host_option Values.options[:uri_host]
+  @path_option Values.options[:uri_path]
+  @port_option Values.options[:uri_port]
 
   test "encode type works" do
     assert <<0 :: size(2)>> == Encoder.encode_type(:con)
@@ -77,22 +78,22 @@ defmodule EncoderTest do
   end
 
   test "set BinaryMessage options" do
-    [delta_urihost, len_urihost] = [Message.options[:"Uri-Host"], String.length("foo.bar")]
-    [delta_uripath, len_uripath] = [Message.options[:"Uri-Path"]-delta_urihost, String.length("baz")]
+    [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
+    [delta_uripath, len_uripath] = [@path_option-delta_urihost, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
 
-    assert expected == Encoder.encode_options(["Uri-Path": "baz", "Uri-Host": "foo.bar"])
+    assert expected == Encoder.encode_options([uri_path: "baz", uri_host: "foo.bar"])
   end
 
   test "encode Coap Message" do
-    msg = %Message{type: :con, token: <<>>, code: "0.01", msg_id: 11,
-                   options: ["Uri-Path": "baz", "Uri-Host": "foo.bar"],
+    msg = %{version: Values.version(), type: :con, token: <<>>, code: "0.01", msg_id: 11,
+                   options: [uri_path: "baz", uri_host: "foo.bar"],
                    payload: "abc"}
 
     expected_msg =
-      <<Message.version::bitstring,
-        Message.types[:con]::size(2), # type CON is 0
+      <<Values.version()::bitstring,
+        Values.types[:con]::size(2), # type CON is 0
         0::size(4),                   # token length is 0
         0::size(3), 1::size(5),       # code is 0.01
         11::size(16),                 # message id is 11

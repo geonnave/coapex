@@ -1,5 +1,6 @@
 defmodule Coapex.Encoder do
   alias Coapex.Message
+  alias Coapex.Values
 
   use Bitwise
 
@@ -11,9 +12,9 @@ defmodule Coapex.Encoder do
 
   The output of this function is meant to be transmitted down to peers via UDP.
   """
-  def encode(%Message{type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
+  def encode(%{version: v, type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
     {token, tk_len} = encode_token(tk)
-    <<Message.version()::bitstring, encode_type(t)::bitstring,
+    <<v::bitstring, encode_type(t)::bitstring,
       tk_len::bitstring, encode_code(c)::bitstring,
       encode_msg_id(id)::bitstring, token::bitstring,
       encode_options(opts)::bitstring, 0xFF, encode_payload(p)::bitstring>>
@@ -24,7 +25,7 @@ defmodule Coapex.Encoder do
     type Confirmable (0), Non-confirmable (1), Acknowledgement (2), or
     Reset (3).
   """
-  def encode_type(type), do: <<Message.types[type] :: size(2)>>
+  def encode_type(type), do: <<Values.types[type] :: size(2)>>
 
   @doc """
   The Token is used to match a response with a request.  The token
@@ -70,7 +71,7 @@ defmodule Coapex.Encoder do
     options
     |> Stream.map(fn({o, v}) ->
       cond do
-        is_atom(o) and Message.options[o] -> {Message.options[o], v}
+        is_atom(o) and Values.options[o] -> {Values.options[o], v}
         is_integer(o) -> {o, v}
         true -> nil
       end

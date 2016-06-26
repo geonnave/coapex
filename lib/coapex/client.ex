@@ -2,13 +2,13 @@ defmodule Coapex.Client do
 
   def request(_method, _target_url, opts \\ [type: :con])
   def request(:get, target_uri, opts) do
-    opts[:options] = case opt[:options] do
-      nil ->
-        uri_to_options(target_uri)
-      options ->
-        options ++ uri_to_options(target_uri)
-    end
-    message = Coapex.Message.init(:get, target_uri, opts)
+    opts =
+      opts ++
+      split_uri(target_uri) ++ [
+      msg_id: :crypto.strong_rand_bytes(2),
+      code: :get
+    ]
+    message = Coapex.Message.init(opts)
     message |> IO.inspect
     # resp = message |> build_binary |> send
   end
@@ -17,7 +17,7 @@ defmodule Coapex.Client do
     # resp = message |> build_binary |> send
   end
 
-  def uri_to_options(uri) do
+  def split_uri(uri) do
     uri = URI.parse(uri)
     # DOUBT: where the information for `coap` or `coaps` goes?
     # (there is no `scheme` option)

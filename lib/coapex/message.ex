@@ -7,88 +7,64 @@ defmodule Coapex.Message do
   Note that the `uri` parameter will be used to create
   specific `options` params (e.g Uri-Host, Uri-Port, etc.)
   """
-  defstruct code: nil,
+  #defstruct version: <<1::2>>, TODO: why this raises an error???
+
+  defstruct version: nil,
+    code: nil,
+    type: nil,
+    token: nil,
+    msg_id: nil,
     uri_host: nil,
     uri_port: 80,
     uri_path: "",
     uri_query: "",
-    type: nil,
-    token: nil,
-    msg_id: nil,
     options: [],
     payload: nil
 
+  import Coapex.Values
 
-  def init(:request, method, uri, opts) do
+  def init(:request, opts) do
+    # TODO: validate all content in `opts`
     %Coapex.Message{
-      code: method_codes[method],
-      uri: URI.parse(uri),
-      type: types[opts[:type]],
+      version: <<1::2>>,
+      code: opts[:code],
+      type: opts[:type],
       token: opts[:token],
-      payload: opts[:payload],
+      msg_id: opts[:msg_id],
+      uri_host: opts[:uri_host],
+      uri_port: opts[:uri_port],
+      uri_path: opts[:uri_path],
+      uri_query: opts[:uri_query],
       options: opts[:options],
-      msg_id: :crypto.strong_rand_bytes(2)
+      payload: opts[:payload]
     }
   end
 
   def init(:response, status, message, opts) do
     %Coapex.Message{
       message |
+      version: <<1::2>>,
       code: response_codes[status],
-      type: types[opts[:type]],
+      type: opts[:type],
       token: opts[:token],
       options: opts[:options],
       payload: opts[:payload]
     }
   end
 
-  def encode(message) do
-    message |> Encoder.encode
+  def encode(:request, message = %Coapex.Message{
+        uri_host: uri_host,
+        uri_port: uri_port,
+        uri_path: uri_path,
+        uri_query: uri_query
+      }) do
+    %Coapex.Message{message |
+      options: options ++ [uri_host: uri_host,
+                           uri_port: uri_port,
+                           uri_path: uri_path,
+                           uri_query: uri_query]
+    }
+    |> Encoder.encode
   end
 
-  def options, do: [
-    "If-Match":        1,
-    "Uri-Host":        3,
-    "ETag":            4,
-    "If-None-Match":   5,
-    "Uri-Port":        7,
-    "Location-Path":   8,
-    "Uri-Path":       11,
-    "Content-Format": 12,
-    "Max-Age":        14,
-    "Uri-Query":      15,
-    "Accept":         17,
-    "Location-Query": 20,
-    "Proxy-Uri":      35,
-    "Proxy-Scheme":   39,
-    "Size1":          60
-  ]
-  def response_codes, do: [
-    created: to_code(2, 01),
-    deleted: to_code(2, 02),
-    valid: to_code(2, 03),
-    changed: to_code(2, 04),
-    content: to_code(2, 05),
-    bad_request: to_code(4, 00),
-    unauthorized: to_code(4, 01),
-    bad_option: to_code(4, 02),
-    forbidden: to_code(4, 03),
-    not_found: to_code(4, 04),
-    method_not_allowed: to_code(4, 05),
-    not_acceptable: to_code(4, 06),
-    precondition_failed: to_code(4, 12),
-    request_entity_too_large: to_code(4, 13),
-    unsupported_content_format: to_code(4, 15),
-    internal_server_error: to_code(5, 00),
-    not_implemented: to_code(5, 01),
-    bad_gateway: to_code(5, 02),
-    service_unavailable: to_code(5, 03),
-    gateway_timeout: to_code(5, 04),
-    proxying_not_supported: to_code(5, 05),
-  ]
-  def method_codes, do: [get: 0x01, post: 0x02, put: 0x03, delete: 0x04]
-  def types, do: [con: 0, non: 1, ack: 2, rst: 3]
-  def version, do: <<1::size(2)>>
-
-  defp to_code(class, detail), do: <<class::3, detail::5>>
 end
