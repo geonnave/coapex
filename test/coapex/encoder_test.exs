@@ -17,18 +17,19 @@ defmodule EncoderTest do
   test "encode token works" do
     assert {"abc", <<3::size(4)>>} == Encoder.encode_token("abc")
     assert {"", <<0::size(4)>>} == Encoder.encode_token("")
+    assert {"", <<0::size(4)>>} == Encoder.encode_token(nil)
   end
 
   test "encode code works" do
     assert <<2::size(3), 5::size(5)>> == Encoder.encode_code({2, 05})
     assert <<2::size(3), 5::size(5)>> == Encoder.encode_code("2.05")
-    assert <<2::size(3), 5::size(5)>> == Encoder.encode_code(205)
+    assert <<2::size(3), 5::size(5)>> == Encoder.encode_code(:content)
   end
   test "encode invalid codes raises error" do
-    assert_raise FunctionClauseError, fn -> Encoder.encode_code(123) end
-    assert_raise FunctionClauseError, fn -> Encoder.encode_code(303) end
-    assert_raise FunctionClauseError, fn -> Encoder.encode_code(666) end
-    assert_raise FunctionClauseError, fn -> Encoder.encode_code(700) end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code("1.23") end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code("3.03") end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code("6.66") end
+    assert_raise FunctionClauseError, fn -> Encoder.encode_code("7.00") end
   end
 
   test "encode msg id works" do
@@ -54,22 +55,22 @@ defmodule EncoderTest do
   end
 
   test "build option delta" do
-    assert {<<(11-3)::size(4)>>, <<>>} == Encoder.gen_option_header(11-3)
-    assert {<<13::size(4)>>, <<(60-15-13)::size(8)>>} == Encoder.gen_option_header(60-15)
-    assert {<<14::size(4)>>, <<(600-15-269)::size(16)>>} == Encoder.gen_option_header(600-15)
+    assert {<<(11-3)::size(4)>>, <<>>} == Encoder.calculate_option_header(11-3)
+    assert {<<13::size(4)>>, <<(60-15-13)::size(8)>>} == Encoder.calculate_option_header(60-15)
+    assert {<<14::size(4)>>, <<(600-15-269)::size(16)>>} == Encoder.calculate_option_header(600-15)
   end
 
   test "build options" do
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_uripath, len_uripath] = [@path_option-delta_urihost, String.length("baz")]
+    [delta_uripath, len_uripath] = [@path_option - delta_urihost, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
     opts = Coapex.Encoder.build_options [{@host_option, "foo.bar"}, {@path_option, "baz"}]
     assert expected == opts
 
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_uriport, len_uriport] = [@port_option-delta_urihost, 1]
-    [delta_uripath, len_uripath] = [@path_option-delta_uriport, String.length("baz")]
+    [delta_uriport, len_uriport] = [@port_option - delta_urihost, 1]
+    [delta_uripath, len_uripath] = [@path_option - delta_uriport, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uriport::size(4), len_uriport::size(4), 88,
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
@@ -79,11 +80,23 @@ defmodule EncoderTest do
 
   test "set BinaryMessage options" do
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_uripath, len_uripath] = [@path_option-delta_urihost, String.length("baz")]
+    [delta_uripath, len_uripath] = [@path_option - delta_urihost, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
 
     assert expected == Encoder.encode_options([uri_path: "baz", uri_host: "foo.bar"])
+  end
+
+  test "set BinaryMessage custom options" do
+    custom_option = 9
+    [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
+    [delta_custom, len_custom] = [custom_option - delta_urihost, String.length("cat")]
+    [delta_uripath, len_uripath] = [@path_option - delta_custom, String.length("baz")]
+    expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
+      delta_custom::4, len_custom::4, "cat",
+      delta_uripath::size(4), len_uripath::size(4), "baz">>
+
+    assert expected == Encoder.encode_options([uri_path: "baz", uri_host: "foo.bar", "9": "cat"])
   end
 
   test "encode Coap Message" do
@@ -93,7 +106,7 @@ defmodule EncoderTest do
 
     expected_msg =
       <<Values.version()::bitstring,
-        Values.types[:con]::size(2), # type CON is 0
+        Values.types[:con]::size(2),  # type CON is 0
         0::size(4),                   # token length is 0
         0::size(3), 1::size(5),       # code is 0.01
         11::size(16),                 # message id is 11

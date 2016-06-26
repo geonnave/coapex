@@ -12,7 +12,7 @@ defmodule Coapex.Encoder do
 
   The output of this function is meant to be transmitted down to peers via UDP.
   """
-  def encode(%{version: v, type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
+  def encode(m = %{version: v, type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
     {token, tk_len} = encode_token(tk)
     <<v::bitstring, encode_type(t)::bitstring,
       tk_len::bitstring, encode_code(c)::bitstring,
@@ -31,7 +31,7 @@ defmodule Coapex.Encoder do
   The Token is used to match a response with a request.  The token
     value is a sequence of 0 to 8 bytes.
   """
-  def encode_token(<<>>), do: {<<>>, <<0::unsigned-integer-size(4)>>}
+  def encode_token(nil), do: encode_token(<<>>)
   def encode_token(token) when is_binary(token) do
     {token, <<String.length(token)::unsigned-integer-size(4)>>}
   end
@@ -42,10 +42,10 @@ defmodule Coapex.Encoder do
     In case of a request, the Code field indicates the Request Method;
     in case of a response, a Response Code.
   """
-  def encode_code(code) when is_integer(code) do
-    encode_code({div(code, 100), rem(code, 100)})
+  def encode_code(code) when is_atom(code) do
+    encode_code(Values.codes[code])
   end
-  def encode_code(<< class, ".", detail :: binary>>) do
+  def encode_code(<<class, ".", detail::binary>>) do
     encode_code({class-48, String.to_integer(detail)})
   end
   def encode_code({class, detail}) when class in [0, 2, 4, 5] do
@@ -60,7 +60,7 @@ defmodule Coapex.Encoder do
   end
 
   def encode_payload(payload) when is_binary(payload), do: payload
-  def encode_payload(payload), do: encode_payload(value_to_binary(payload))
+  def encode_payload(payload), do: value_to_binary(payload)
 
   @doc """
   Each option instance in a message specifies the Option Number of the
@@ -71,8 +71,9 @@ defmodule Coapex.Encoder do
     options
     |> Stream.map(fn({o, v}) ->
       cond do
+        is_nil(v) -> nil
         is_atom(o) and Values.options[o] -> {Values.options[o], v}
-        is_integer(o) -> {o, v}
+        is_atom(o) -> {o |> to_string |> String.to_integer, v}
         true -> nil
       end
     end)
@@ -117,11 +118,12 @@ defmodule Coapex.Encoder do
 
     value = value_to_binary(value)
 
-    {del, ext_del} = gen_option_header(delta)
-    {len, ext_len} = gen_option_header(String.length(value))
+    {del, ext_del} = calculate_option_header(delta)
+    {len, ext_len} = calculate_option_header(String.length(value))
 
     <<del::bitstring, len::bitstring,
-      ext_del::bitstring, ext_len::bitstring, value::bitstring>> <> build_options(rest, delta)
+      ext_del::bitstring, ext_len::bitstring,
+      value::bitstring>> <> build_options(rest, delta)
   end
 
   @doc """
@@ -143,14 +145,15 @@ defmodule Coapex.Encoder do
   The same rules apply for building the Option Length field. Thus, the
    function below is useful for generating both Delta and Length fields.
   """
-  def gen_option_header(value) when value in 0..12, do: {<<value::unsigned-integer-size(4)>>, <<>>}
-  def gen_option_header(value) when value > 12 and value <= 255 do
+  def calculate_option_header(value) when value in 0..12, do: {<<value::unsigned-integer-size(4)>>, <<>>}
+  def calculate_option_header(value) when value > 12 and value <= 255 do
     {<<13::unsigned-integer-size(4)>>, <<(value-13)::unsigned-integer-size(8)>>}
   end
-  def gen_option_header(value) when value > 255 and value < (1 <<< 16) do
+  def calculate_option_header(value) when value > 255 and value < (1 <<< 16) do
     {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}
   end
 
+  def value_to_binary(nil), do: <<>>
   def value_to_binary(value) when is_binary(value), do: <<value::binary>>
   def value_to_binary(value) when is_number(value) do
     cond do

@@ -1,5 +1,9 @@
 defmodule Coapex.Values do
 
+  def version, do: <<1::size(2)>>
+
+  def types, do: [con: 0, non: 1, ack: 2, rst: 3]
+
   def options, do: [
     if_match:        1,
     uri_host:        3,
@@ -17,33 +21,35 @@ defmodule Coapex.Values do
     proxy_scheme:   39,
     size1:          60
   ]
-  def response_codes, do: [
-    created: to_code(2, 01),
-    deleted: to_code(2, 02),
-    valid: to_code(2, 03),
-    changed: to_code(2, 04),
-    content: to_code(2, 05),
-    bad_request: to_code(4, 00),
-    unauthorized: to_code(4, 01),
-    bad_option: to_code(4, 02),
-    forbidden: to_code(4, 03),
-    not_found: to_code(4, 04),
-    method_not_allowed: to_code(4, 05),
-    not_acceptable: to_code(4, 06),
-    precondition_failed: to_code(4, 12),
-    request_entity_too_large: to_code(4, 13),
-    unsupported_content_format: to_code(4, 15),
-    internal_server_error: to_code(5, 00),
-    not_implemented: to_code(5, 01),
-    bad_gateway: to_code(5, 02),
-    service_unavailable: to_code(5, 03),
-    gateway_timeout: to_code(5, 04),
-    proxying_not_supported: to_code(5, 05),
-  ]
-  def method_codes, do: [get: 0x01, post: 0x02, put: 0x03, delete: 0x04]
-  def types, do: [con: 0, non: 1, ack: 2, rst: 3]
-  def version, do: <<1::size(2)>>
 
-  defp to_code(class, detail), do: <<class::3, detail::5>>
+  def codes, do: [
+    # request codes
+    get: "0.01",
+    post: "0.02",
+    put: "0.03",
+    delete: "0.04",
+    # response codes
+    created: "2.01",
+    deleted: "2.02",
+    valid: "2.03",
+    changed: "2.04",
+    content: "2.05",
+    bad_request: "4.00",
+    unauthorized: "4.01",
+    bad_option: "4.02",
+    forbidden: "4.03",
+    not_found: "4.04",
+    method_not_allowed: "4.05",
+    not_acceptable: "4.06",
+    precondition_failed: "4.12",
+    request_entity_too_large: "4.13",
+    unsupported_content_format: "4.15",
+    internal_server_error: "5.00",
+    not_implemented: "5.01",
+    bad_gateway: "5.02",
+    service_unavailable: "5.03",
+    gateway_timeout: "5.04",
+    proxying_not_supported: "5.05",
+  ]
 
 end

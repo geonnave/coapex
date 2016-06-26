@@ -44,7 +44,7 @@ defmodule Coapex.Message do
     %Coapex.Message{
       message |
       version: <<1::2>>,
-      code: response_codes[status],
+      code: status,
       type: opts[:type],
       token: opts[:token],
       options: opts[:options],
@@ -59,12 +59,12 @@ defmodule Coapex.Message do
         uri_query: uri_query
       }) do
     %Coapex.Message{message |
-      options: options ++ [uri_host: uri_host,
+      options: message.options ++ [uri_host: uri_host,
                            uri_port: uri_port,
                            uri_path: uri_path,
                            uri_query: uri_query]
     }
-    |> Encoder.encode
+    |> Coapex.Encoder.encode
   end
 
 end
