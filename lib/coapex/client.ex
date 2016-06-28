@@ -2,12 +2,8 @@ defmodule Coapex.Client do
 
   def request(_method, _target_url, opts \\ [type: :con])
   def request(:get, target_uri, opts) do
-    opts =
-      opts ++
-      split_uri(target_uri) ++ [
-      msg_id: :crypto.strong_rand_bytes(2),
-      code: :get
-    ]
+    put_in(opts[:options], set_options_uri(opts[:options], target_uri))
+    opts = Keyword.merge(opts, [msg_id: :crypto.strong_rand_bytes(2), code: :get])
     message = Coapex.Message.init(opts)
     message |> IO.inspect
     # resp = message |> build_binary |> send
@@ -17,11 +13,13 @@ defmodule Coapex.Client do
     # resp = message |> build_binary |> send
   end
 
-  def split_uri(uri) do
+  def set_options_uri(options, uri) do
     uri = URI.parse(uri)
-    # DOUBT: where the information for `coap` or `coaps` goes?
+    # DOUBT: where does the information for `coap` or `coaps` go?
     # (there is no `scheme` option)
-    [uri_host: uri.host, uri_port: uri.port, uri_path: uri.path, uri_query: uri.query]
+    Keyword.merge(options,
+                  [uri_host: uri.host, uri_port: uri.port,
+                   uri_path: uri.path, uri_query: uri.query])
   end
 
 end

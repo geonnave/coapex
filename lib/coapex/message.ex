@@ -14,10 +14,6 @@ defmodule Coapex.Message do
     type: nil,
     token: nil,
     msg_id: nil,
-    uri_host: nil,
-    uri_port: 80,
-    uri_path: "",
-    uri_query: "",
     options: [],
     payload: nil
 
@@ -31,10 +27,6 @@ defmodule Coapex.Message do
       type: opts[:type],
       token: opts[:token],
       msg_id: opts[:msg_id],
-      uri_host: opts[:uri_host],
-      uri_port: opts[:uri_port],
-      uri_path: opts[:uri_path],
-      uri_query: opts[:uri_query],
       options: opts[:options],
       payload: opts[:payload]
     }
@@ -52,19 +44,8 @@ defmodule Coapex.Message do
     }
   end
 
-  def encode(:request, message = %Coapex.Message{
-        uri_host: uri_host,
-        uri_port: uri_port,
-        uri_path: uri_path,
-        uri_query: uri_query
-      }) do
-    %Coapex.Message{message |
-      options: message.options ++ [uri_host: uri_host,
-                           uri_port: uri_port,
-                           uri_path: uri_path,
-                           uri_query: uri_query]
-    }
-    |> Coapex.Encoder.encode
+  def encode(message = %Coapex.Message{}, :request) do
+    message |> Coapex.Encoder.encode
   end
 
 end
