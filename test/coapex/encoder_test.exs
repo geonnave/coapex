@@ -55,9 +55,19 @@ defmodule EncoderTest do
   end
 
   test "build option delta" do
-    assert {<<(11-3)::size(4)>>, <<>>} == Encoder.calculate_option_header(11-3)
-    assert {<<13::size(4)>>, <<(60-15-13)::size(8)>>} == Encoder.calculate_option_header(60-15)
-    assert {<<14::size(4)>>, <<(600-15-269)::size(16)>>} == Encoder.calculate_option_header(600-15)
+    delta = 0
+
+    delta = 3-delta # 3
+    assert {<<(delta)::size(4)>>, <<>>} == Encoder.calculate_option_header(delta)
+
+    delta = 11-delta # 8
+    assert {<<(delta)::size(4)>>, <<>>} == Encoder.calculate_option_header(delta)
+
+    delta = 60-delta # 52
+    assert {<<13::size(4)>>, <<(delta-13)::size(8)>>} == Encoder.calculate_option_header(delta)
+
+    delta = 600-delta # 548
+    assert {<<14::size(4)>>, <<(delta-269)::size(16)>>} == Encoder.calculate_option_header(delta)
   end
 
   test "build options" do

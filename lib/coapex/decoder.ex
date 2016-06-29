@@ -19,6 +19,23 @@ defmodule Coapex.Decoder do
     }
   end
 
+  def decode_option(<<delta::4, length::4, rest::binary>>, prev_delta) do
+    {real_delta, rest} = decode_option_header(delta, rest)
+    {real_length, rest} = decode_option_header(length, rest)
+    <<value::binary-size(real_length), rest::binary>> = rest
+    {prev_delta + real_delta, real_length, value, rest}
+  end
+
+  def decode_option_header(value, rest) when value in 0..12 do
+    {value, rest}
+  end
+  def decode_option_header(value, <<ext_val::8, rest::binary>>) when value == 13 do
+    {ext_val + 13, rest}
+  end
+  def decode_option_header(value, <<ext_val::16, rest::binary>>) when value == 14 do
+    {ext_val + 269, rest}
+  end
+
   def parse_options(rest) do
     parse_options(rest, [])
   end
