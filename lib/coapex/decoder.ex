@@ -29,10 +29,10 @@ defmodule Coapex.Decoder do
   def decode_option_header(value, rest) when value in 0..12 do
     {value, rest}
   end
-  def decode_option_header(value, <<ext_val::8, rest::binary>>) when value == 13 do
+  def decode_option_header(13, <<ext_val::8, rest::binary>>) do
     {ext_val + 13, rest}
   end
-  def decode_option_header(value, <<ext_val::16, rest::binary>>) when value == 14 do
+  def decode_option_header(14, <<ext_val::16, rest::binary>>) do
     {ext_val + 269, rest}
   end
 
