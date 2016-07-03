@@ -2,6 +2,10 @@ defmodule Coapex.Values do
 
   def version, do: <<1::size(2)>>
 
+  def from(fun_name) do
+    for {n, o} <- apply(__MODULE__, fun_name, []), do: {o, n}
+  end
+
   def types, do: [con: 0, non: 1, ack: 2, rst: 3]
 
   def options, do: [
