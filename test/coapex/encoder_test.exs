@@ -110,7 +110,7 @@ defmodule EncoderTest do
   end
 
   test "encode Coap Message" do
-    msg = %{version: Values.version(), type: :con, token: <<>>, code: "0.01", msg_id: 11,
+    msg = %Message{version: Values.version(), type: :con, token: <<>>, code: "0.01", msg_id: 11,
                    options: [uri_path: "baz", uri_host: "foo.bar"],
                    payload: "abc"}
 

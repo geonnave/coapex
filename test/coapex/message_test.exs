@@ -13,8 +13,7 @@ defmodule MessageTest do
     m = Message.init(:request,
                      type: :con, code: :get, msg_id: 123,
                      options: [uri_host: "example.com", accept: "application/json"])
-    encoded_m = Message.encode(m, :request)
-    IO.inspect encoded_m
+    Message.encode(m, :request)
   end
 
 end

@@ -2,8 +2,24 @@ defmodule Coapex.Values do
 
   def version, do: <<1::size(2)>>
 
-  def from(fun_name) do
-    for {n, o} <- apply(__MODULE__, fun_name, []), do: {o, n}
+  # TODO: fix this infamous GAMBIARRA
+  #       maybe use a macro to generate `to_` and `from_` functions
+  def from(fun_name, value) when is_number(value) do
+    from(fun_name, value |> Integer.to_string)
+  end
+  def from(fun_name, value) do
+    inverted =
+      apply(__MODULE__, fun_name, [])
+      |> Enum.map(fn({n, o}) ->
+        if is_number(o) do
+          {o |> Integer.to_string |> String.to_atom, n}
+        else
+          {o |> String.to_atom, n}
+        end
+      end)
+
+    value = value |> String.to_atom
+    inverted[value]
   end
 
   def types, do: [con: 0, non: 1, ack: 2, rst: 3]

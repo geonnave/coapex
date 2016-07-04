@@ -12,7 +12,7 @@ defmodule Coapex.Encoder do
 
   The output of this function is meant to be transmitted down to peers via UDP.
   """
-  def encode(m = %{version: v, type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
+  def encode(%Message{version: v, type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
     {token, tk_len} = encode_token(tk)
     <<v::bitstring, encode_type(t)::bitstring,
       tk_len::bitstring, encode_code(c)::bitstring,

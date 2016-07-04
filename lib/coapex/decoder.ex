@@ -18,7 +18,7 @@ defmodule Coapex.Decoder do
     code = decode_code(code_class, code_detail)
     token = if token_len == 0, do: nil, else: token
     %Message{
-      version: <<1::2>>, type: Values.from(:types)[type],
+      version: <<1::2>>, type: Values.from(:types, type),
       code: code,
       msg_id: msg_id, token: token,
       options: options, payload: payload
@@ -29,7 +29,7 @@ defmodule Coapex.Decoder do
     code = Integer.to_string(code_class) <> "."
       <> (Integer.to_string(code_detail) |> String.rjust(2, ?0))
 
-    Values.from(:codes)[code]
+    Values.from(:codes, code)
   end
 
   def decode_options_and_payload(rest) do
@@ -52,7 +52,7 @@ defmodule Coapex.Decoder do
     <<value::binary-size(real_length), rest::binary>> = rest
 
     opt_number = prev_opt_number + real_delta
-    opt_name = Values.from(:options)[opt_number] || opt_number
+    opt_name = Values.from(:options, opt_number) || opt_number
 
     [{opt_name, value} | decode_options(rest, opt_number)]
   end

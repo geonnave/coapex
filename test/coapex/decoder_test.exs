@@ -55,7 +55,7 @@ defmodule DecoderTest do
     len = 13
     ext_len = value_len - 13
     bin_opt = <<delta::size(4), len::size(4), ext_len::size(8), value::binary, 255>>
-    assert [{:uri_host, value}, _] = Decoder.decode_options(bin_opt, 0)
+    assert [{:uri_host, _value}, _] = Decoder.decode_options(bin_opt, 0)
 
     delta = 0
     value = "string greater than 255 bytes" <> Enum.reduce(1..300, <<>>, &(&2 <> <<&1>>))
@@ -65,7 +65,7 @@ defmodule DecoderTest do
     len = 14
     ext_len = value_len - 269
     bin_opt = <<delta::size(4), len::size(4), ext_len::size(16), value::binary, 255>>
-    assert [{:uri_host, value}, _] = Decoder.decode_options(bin_opt, 0)
+    assert [{:uri_host, _value}, _] = Decoder.decode_options(bin_opt, 0)
   end
 
   test "decode a number of options" do
