@@ -17,7 +17,7 @@ defmodule DecoderTest do
                        type: :con, code: :get, msg_id: 123,
                        options: [uri_host: "example.com", accept: "application/json"])
 
-    bin_msg = Message.encode(msg, :request)
+    bin_msg = Encoder.encode(msg)
 
     assert msg == Decoder.decode(bin_msg)
   end
