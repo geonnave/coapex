@@ -8,9 +8,12 @@ A quick (but not quite exact) comparison is "CoAP is a HTTP with binary header".
 
 * Encoder: allows the user to build a CoAP binary message from a `%Message` struct
 ```
-iex> msg = Message.init(:request,
+iex> msg = Coapex.Message.init(:request,
                        type: :con, code: :get, msg_id: 123,
                        options: [uri_host: "example.com", accept: "application/json"])
+%Coapex.Message{code: :get, msg_id: 123,
+ options: [uri_host: "example.com", accept: "application/json"], payload: nil,
+ token: nil, type: :con, version: <<1::size(2)>>}
 iex> Coapex.Encoder.encode(msg)
 <<64, 1, 0, 123, 59, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 65, 87,
   255, 97, 98, 99>>
@@ -21,8 +24,8 @@ iex> Coapex.Encoder.encode(msg)
 iex> msg = Message.init(:request,
                        type: :con, code: :get, msg_id: 123,
                        options: [uri_host: "example.com", accept: "application/json"])
-iex> bin_msg = Encoder.encode(msg)
-iex> msg = Decoder.decode(bin_msg)
+iex> bin_msg = Coapex.Encoder.encode(msg)
+iex> msg = Coapex.Decoder.decode(bin_msg)
 %Coapex.Message{code: :get, msg_id: 123,
  options: [uri_host: "example.com", uri_port: "W"], payload: "abc", token: nil,
  type: :con, version: <<1::size(2)>>}
