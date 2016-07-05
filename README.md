@@ -21,7 +21,7 @@ iex> Coapex.Encoder.encode(msg)
 
 * Decoder: convert a CoAP binary message into a friendly `%Message` struct
 ```
-iex> msg = Message.init(:request,
+iex> msg = Coapex.Message.init(:request,
                        type: :con, code: :get, msg_id: 123,
                        options: [uri_host: "example.com", accept: "application/json"])
 iex> bin_msg = Coapex.Encoder.encode(msg)
