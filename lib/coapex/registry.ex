@@ -2,26 +2,6 @@ defmodule Coapex.Registry do
 
   def version, do: <<1::size(2)>>
 
-  # TODO: fix this infamous GAMBIARRA
-  #       maybe use a macro to generate `to_` and `from_` functions
-  def from(fun_name, value) when is_number(value) do
-    from(fun_name, value |> Integer.to_string)
-  end
-  def from(fun_name, value) do
-    inverted =
-      apply(__MODULE__, fun_name, [])
-      |> Enum.map(fn({n, o}) ->
-        if is_number(o) do
-          {o |> Integer.to_string |> String.to_atom, n}
-        else
-          {o |> String.to_atom, n}
-        end
-      end)
-
-    value = value |> String.to_atom
-    inverted[value]
-  end
-
   def types, do: [con: 0, non: 1, ack: 2, rst: 3]
 
   def options, do: [
@@ -40,6 +20,16 @@ defmodule Coapex.Registry do
     proxy_uri:      35,
     proxy_scheme:   39,
     size1:          60
+  ]
+
+  def content_formats, do: [
+    "text/plain;": 0,
+#   "charset=utf-8": nil,
+    "application/link-format": 40,
+    "application/xml": 41,
+    "application/octet-stream": 42,
+    "application/exi": 47,
+    "application/json": 50,
   ]
 
   def codes, do: [
@@ -71,5 +61,27 @@ defmodule Coapex.Registry do
     gateway_timeout: "5.04",
     proxying_not_supported: "5.05",
   ]
+
+  # TODO: Fix this infamous GAMBIARRA.
+  #       This is used to invert the keyword lists of this module.
+  #       Maybe this could be better solved by using a macro to
+  #        generate `to_` and `from_` functions.
+  def from(fun_name, value) when is_number(value) do
+    from(fun_name, value |> Integer.to_string)
+  end
+  def from(fun_name, value) do
+    inverted =
+      apply(__MODULE__, fun_name, [])
+      |> Enum.map(fn({n, o}) ->
+      if is_number(o) do
+        {o |> Integer.to_string |> String.to_atom, n}
+      else
+        {o |> String.to_atom, n}
+      end
+    end)
+
+      value = value |> String.to_atom
+      inverted[value]
+  end
 
 end

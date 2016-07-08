@@ -17,8 +17,6 @@ defmodule Coapex.Message do
     options: [],
     payload: nil
 
-  import Coapex.Registry
-
   def init(:request, opts) do
     # TODO: validate all content in `opts`
     %Coapex.Message{

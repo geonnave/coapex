@@ -12,7 +12,7 @@ defmodule DecoderTest do
   test "decode message" do
     msg = Message.init(:request,
                        type: :con, code: :get, msg_id: 123,
-                       options: [uri_host: "example.com", accept: "application/json"])
+                       options: [uri_host: "example.com", accept: :"application/json"])
 
     bin_msg = Encoder.encode(msg)
 

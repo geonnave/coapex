@@ -59,7 +59,7 @@ defmodule Coapex.Encoder do
   end
 
   def encode_payload(payload) when is_binary(payload), do: payload
-  def encode_payload(payload), do: value_to_binary(payload)
+  def encode_payload(payload), do: encode_value(:binary, payload)
 
   @doc """
   Each option instance in a message specifies the Option Number of the
@@ -115,7 +115,7 @@ defmodule Coapex.Encoder do
   def build_options([{op, value} | rest], prev_delta) do
     delta = op - prev_delta
 
-    value = value_to_binary(value)
+    value = encode_value(op, value)
 
     {del, ext_del} = calculate_option_header(delta)
     {len, ext_len} = calculate_option_header(String.length(value))
@@ -152,9 +152,12 @@ defmodule Coapex.Encoder do
     {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}
   end
 
-  def value_to_binary(nil), do: <<>>
-  def value_to_binary(value) when is_binary(value), do: <<value::binary>>
-  def value_to_binary(value) when is_number(value) do
+  def encode_value(op, value) when op in [12, 17] do
+    Registry.content_formats[value] |> number_to_binary
+  end
+  def encode_value(_, nil), do: <<>>
+  def encode_value(_, value) when is_binary(value), do: <<value::binary>>
+  def encode_value(_, value) when is_number(value) do
     cond do
       value < 0 ->
         raise "invalid value"

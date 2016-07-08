@@ -3,7 +3,7 @@ defmodule Coapex.Decoder do
 
   alias Coapex.{Message, Registry}
 
-  def decode(message = <<
+  def decode(_message = <<
       1::2,
       type::2,
       token_len::4,
@@ -48,11 +48,11 @@ defmodule Coapex.Decoder do
     {real_delta, rest} = decode_option_header(delta, rest)
     {real_length, rest} = decode_option_header(length, rest)
 
-    <<value::binary-size(real_length), rest::binary>> = rest
-
     opt_number = prev_opt_number + real_delta
-    opt_name = Registry.from(:options, opt_number) || opt_number
+    <<value::binary-size(real_length), rest::binary>> = rest
+    value = decode_value(opt_number, value)
 
+    opt_name = Registry.from(:options, opt_number) || opt_number
     [{opt_name, value} | decode_options(rest, opt_number)]
   end
 
@@ -64,6 +64,13 @@ defmodule Coapex.Decoder do
   end
   def decode_option_header(14, <<ext_val::16, rest::binary>>) do
     {ext_val + 269, rest}
+  end
+
+  def decode_value(op, <<value::8>>) when op in [12, 17] do
+    Registry.from(:content_formats, value)
+  end
+  def decode_value(_op, value) do
+    value
   end
 
 end

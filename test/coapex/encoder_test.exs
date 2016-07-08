@@ -47,8 +47,8 @@ defmodule EncoderTest do
     assert Coapex.Encoder.number_to_binary(257) == <<1, 1>>
   end
   test "integer value to binary" do
-    assert Coapex.Encoder.value_to_binary(3) == <<3>>
-    assert Coapex.Encoder.value_to_binary("a") == <<97>>
+    assert Coapex.Encoder.encode_value(:binary, 3) == <<3>>
+    assert Coapex.Encoder.encode_value(:binary, "a") == <<97>>
   end
 
   test "build option delta" do
