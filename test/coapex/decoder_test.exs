@@ -1,15 +1,12 @@
 defmodule DecoderTest do
   use ExUnit.Case
 
-  alias Coapex.Message
-  alias Coapex.Decoder
-  alias Coapex.Encoder
-  alias Coapex.Values
+  alias Coapex.{Message, Encoder, Decoder, Registry}
 
-  @host_option Values.options[:uri_host]
-  @path_option Values.options[:uri_path]
-  @port_option Values.options[:uri_port]
-  @size1_option Values.options[:size1]
+  @host_option Registry.options[:uri_host]
+  @path_option Registry.options[:uri_path]
+  @port_option Registry.options[:uri_port]
+  @size1_option Registry.options[:size1]
   @custom_option 600
 
   test "decode message" do

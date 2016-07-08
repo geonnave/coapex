@@ -1,8 +1,7 @@
 defmodule Coapex.Encoder do
-  alias Coapex.Message
-  alias Coapex.Values
-
   use Bitwise
+
+  alias Coapex.{Message, Registry}
 
   @doc """
   Transforms a Message struct into a binary Coap Message.
@@ -25,7 +24,7 @@ defmodule Coapex.Encoder do
     type Confirmable (0), Non-confirmable (1), Acknowledgement (2), or
     Reset (3).
   """
-  def encode_type(type), do: <<Values.types[type] :: size(2)>>
+  def encode_type(type), do: <<Registry.types[type] :: size(2)>>
 
   @doc """
   The Token is used to match a response with a request.  The token
@@ -43,7 +42,7 @@ defmodule Coapex.Encoder do
     in case of a response, a Response Code.
   """
   def encode_code(code) when is_atom(code) do
-    encode_code(Values.codes[code])
+    encode_code(Registry.codes[code])
   end
   def encode_code(<<class, ".", detail::binary>>) do
     encode_code({class-48, String.to_integer(detail)})
@@ -72,7 +71,7 @@ defmodule Coapex.Encoder do
     |> Stream.map(fn({o, v}) ->
       cond do
         is_nil(v) -> nil
-        is_atom(o) and Values.options[o] -> {Values.options[o], v}
+        is_atom(o) and Registry.options[o] -> {Registry.options[o], v}
         is_atom(o) -> {o |> to_string |> String.to_integer, v}
         true -> nil
       end

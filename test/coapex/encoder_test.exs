@@ -1,14 +1,11 @@
 defmodule EncoderTest do
   use ExUnit.Case
 
-  alias Coapex.Message
-  alias Coapex.Encoder
-  alias Coapex.Values
+  alias Coapex.{Message, Encoder, Registry}
 
-
-  @host_option Values.options[:uri_host]
-  @path_option Values.options[:uri_path]
-  @port_option Values.options[:uri_port]
+  @host_option Registry.options[:uri_host]
+  @path_option Registry.options[:uri_path]
+  @port_option Registry.options[:uri_port]
 
   test "encode type works" do
     assert <<0 :: size(2)>> == Encoder.encode_type(:con)
@@ -110,13 +107,13 @@ defmodule EncoderTest do
   end
 
   test "encode Coap Message" do
-    msg = %Message{version: Values.version(), type: :con, token: <<>>, code: "0.01", msg_id: 11,
+    msg = %Message{version: Registry.version(), type: :con, token: <<>>, code: "0.01", msg_id: 11,
                    options: [uri_path: "baz", uri_host: "foo.bar"],
                    payload: "abc"}
 
     expected_msg =
-      <<Values.version()::bitstring,
-        Values.types[:con]::size(2),  # type CON is 0
+      <<Registry.version()::bitstring,
+        Registry.types[:con]::size(2),  # type CON is 0
         0::size(4),                   # token length is 0
         0::size(3), 1::size(5),       # code is 0.01
         11::size(16),                 # message id is 11

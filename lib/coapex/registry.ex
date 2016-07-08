@@ -1,4 +1,4 @@
-defmodule Coapex.Values do
+defmodule Coapex.Registry do
 
   def version, do: <<1::size(2)>>
 
