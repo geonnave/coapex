@@ -1,6 +1,6 @@
 defmodule Coapex.Registry do
 
-  def version, do: <<1::size(2)>>
+  def version, do: 1
 
   def types, do: [con: 0, non: 1, ack: 2, rst: 3]
 

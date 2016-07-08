@@ -4,16 +4,16 @@ defmodule MessageTest do
   alias Coapex.Message
 
   test "init a simple message" do
-    m = Message.init(:request, code: :get,
+    msg = Message.init(code: :get,
                      options: [uri_host: "example.com", accept: :"application/json"])
-    assert %Message{code: :get, options: [uri_host: "example.com", accept: :"application/json"]} = m
+    assert %Message{code: :get, options: [uri_host: "example.com", accept: :"application/json"]} == msg
   end
 
-  test "init and encode a simple message" do
-    m = Message.init(:request,
-                     type: :con, code: :get, msg_id: 123,
+  test "init, encode and decode a simple message" do
+    msg = Message.init(type: :con, code: :get, msg_id: 123,
                      options: [uri_host: "example.com", accept: :"application/json"])
-    Message.encode(m, :request)
+    bin_msg = Message.encode(msg)
+    assert msg == Message.decode(bin_msg)
   end
 
 end

@@ -13,11 +13,11 @@ defmodule Coapex.Decoder do
       token::size(token_len),
       rest::binary
       >>) do
-    {options, payload} = decode_options_and_payload(rest)
     code = decode_code(code_class, code_detail)
-    token = if token_len == 0, do: nil, else: token
+    token = decode_token(token, token_len)
+    {options, payload} = decode_options_and_payload(rest)
     %Message{
-      version: <<1::2>>, type: Registry.from(:types, type),
+      version: 1, type: Registry.from(:types, type),
       code: code,
       msg_id: msg_id, token: token,
       options: options, payload: payload
@@ -30,6 +30,9 @@ defmodule Coapex.Decoder do
 
     Registry.from(:codes, code)
   end
+
+  def decode_token(_token, 0), do: nil
+  def decode_token(token, _token_len), do: token
 
   def decode_options_and_payload(rest) do
     options_and_payload = decode_options(rest, 0)

@@ -112,7 +112,7 @@ defmodule EncoderTest do
                    payload: "abc"}
 
     expected_msg =
-      <<Registry.version()::bitstring,
+      <<Registry.version()::size(2),
         Registry.types[:con]::size(2),  # type CON is 0
         0::size(4),                   # token length is 0
         0::size(3), 1::size(5),       # code is 0.01

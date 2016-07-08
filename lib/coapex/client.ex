@@ -1,16 +1,16 @@
 defmodule Coapex.Client do
+  alias Coapex.{Message}
 
-  def request(_method, _target_url, opts \\ [type: :con])
-  def request(:get, target_uri, opts) do
-    put_in(opts[:options], set_options_uri(opts[:options], target_uri))
-    opts = Keyword.merge(opts, [msg_id: :crypto.strong_rand_bytes(2), code: :get])
-    message = Coapex.Message.init(opts)
-    message |> IO.inspect
-    # resp = message |> build_binary |> send
+  def request(msg) do
+    msg
   end
-  def request(:post, target_uri, opts) do
-    message = Coapex.Message.init(:post, target_uri, opts)
-    # resp = message |> build_binary |> send
+
+  def request(_method, _target_url, opts \\ [type: :con, options: []])
+
+  def request(:get, target_uri, opts) do
+    opts = put_in(opts[:options], set_options_uri(opts[:options], target_uri))
+    opts = Keyword.merge(opts, [msg_id: :crypto.strong_rand_bytes(2), code: :get])
+    Message.init(opts)
   end
 
   def set_options_uri(options, uri) do

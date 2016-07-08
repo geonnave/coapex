@@ -7,9 +7,9 @@ defmodule Coapex.Message do
   Note that the `uri` parameter will be used to create
   specific `options` params (e.g Uri-Host, Uri-Port, etc.)
   """
-  #defstruct version: <<1::2>>, TODO: why this raises an error???
 
-  defstruct version: nil,
+  #defstruct version: <<1::2>>, TODO: why this raises an error???
+  defstruct version: 1,
     code: nil,
     type: nil,
     token: nil,
@@ -17,10 +17,10 @@ defmodule Coapex.Message do
     options: [],
     payload: nil
 
-  def init(:request, opts) do
+  def init(opts) do
     # TODO: validate all content in `opts`
     %Coapex.Message{
-      version: <<1::2>>,
+      version: 1,
       code: opts[:code],
       type: opts[:type],
       token: opts[:token],
@@ -30,20 +30,12 @@ defmodule Coapex.Message do
     }
   end
 
-  def init(:response, status, message, opts) do
-    %Coapex.Message{
-      message |
-      version: <<1::2>>,
-      code: status,
-      type: opts[:type],
-      token: opts[:token],
-      options: opts[:options],
-      payload: opts[:payload]
-    }
+  def encode(message = %Coapex.Message{}) do
+    message |> Coapex.Encoder.encode
   end
 
-  def encode(message = %Coapex.Message{}, :request) do
-    message |> Coapex.Encoder.encode
+  def decode(bin_message = <<_::binary>>) do
+    bin_message |> Coapex.Decoder.decode
   end
 
 end

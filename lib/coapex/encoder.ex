@@ -13,7 +13,7 @@ defmodule Coapex.Encoder do
   """
   def encode(%Message{version: v, type: t, code: c, token: tk, msg_id: id, options: opts, payload: p}) do
     {token, tk_len} = encode_token(tk)
-    <<v::bitstring, encode_type(t)::bitstring,
+    <<v::size(2), encode_type(t)::bitstring,
       tk_len::bitstring, encode_code(c)::bitstring,
       encode_msg_id(id)::bitstring, token::bitstring,
       encode_options(opts)::bitstring, 0xFF, encode_payload(p)::bitstring>>
