@@ -117,8 +117,8 @@ defmodule Coapex.Encoder do
 
     value = encode_value(op, value)
 
-    {del, ext_del} = calculate_option_header(delta)
-    {len, ext_len} = calculate_option_header(String.length(value))
+    {del, ext_del} = encode_option_header(delta)
+    {len, ext_len} = encode_option_header(String.length(value))
 
     <<del::bitstring, len::bitstring,
       ext_del::bitstring, ext_len::bitstring,
@@ -144,35 +144,21 @@ defmodule Coapex.Encoder do
   The same rules apply for building the Option Length field. Thus, the
    function below is useful for generating both Delta and Length fields.
   """
-  def calculate_option_header(value) when value in 0..12, do: {<<value::unsigned-integer-size(4)>>, <<>>}
-  def calculate_option_header(value) when value > 12 and value <= 255 do
+  def encode_option_header(value) when value in 0..12, do: {<<value::unsigned-integer-size(4)>>, <<>>}
+  def encode_option_header(value) when value > 12 and value <= 255 do
     {<<13::unsigned-integer-size(4)>>, <<(value-13)::unsigned-integer-size(8)>>}
   end
-  def calculate_option_header(value) when value > 255 and value < (1 <<< 16) do
+  def encode_option_header(value) when value > 255 and value < (1 <<< 16) do
     {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}
   end
 
   def encode_value(op, value) when op in [12, 17] do
-    Registry.content_formats[value] |> number_to_binary
+    Registry.content_formats[value] |> :binary.encode_unsigned
   end
   def encode_value(_, nil), do: <<>>
-  def encode_value(_, value) when is_binary(value), do: <<value::binary>>
+  def encode_value(_, value) when is_binary(value), do: value
   def encode_value(_, value) when is_number(value) do
-    cond do
-      value < 0 ->
-        raise "invalid value"
-      value > (1 <<< 32) ->
-        raise "invalid value"
-      true ->
-        number_to_binary(value)
-    end
-  end
-
-  def number_to_binary(number), do: number_to_binary(number, 0)
-  def number_to_binary(number, 32), do: <<(number &&& 0xFF)>>
-  def number_to_binary(0, _shift), do: <<>>
-  def number_to_binary(number, shift) do
-    <<(number &&& 0xFF)>> <> number_to_binary(number >>> (shift+8), shift+8)
+    :binary.encode_unsigned(value)
   end
 
 end

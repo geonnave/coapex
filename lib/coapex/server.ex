@@ -13,8 +13,9 @@ defmodule Coapex.Server do
     {:ok, socket} = :gen_udp.open(@port, [:binary])
   end
 
-  def handle_info({:udp, socket, ip, port, data}, state) do
+  def handle_info(_msg = {:udp, socket, ip, port, data}, state) do
     IO.inspect [ip, port, data]
+    # send msg to something
     :gen_udp.send(socket, ip, port, "I'm here!\n")
     {:noreply, state}
   end

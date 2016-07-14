@@ -40,12 +40,6 @@ defmodule EncoderTest do
   end
 
   # Now testing options stuff!
-  test "number to binary" do
-    assert Coapex.Encoder.number_to_binary(3) == <<3>>
-    assert Coapex.Encoder.number_to_binary(255) == <<255>>
-    assert Coapex.Encoder.number_to_binary(256) == <<0, 1>>
-    assert Coapex.Encoder.number_to_binary(257) == <<1, 1>>
-  end
   test "integer value to binary" do
     assert Coapex.Encoder.encode_value(:binary, 3) == <<3>>
     assert Coapex.Encoder.encode_value(:binary, "a") == <<97>>
@@ -55,16 +49,16 @@ defmodule EncoderTest do
     delta = 0
 
     delta = 3-delta # 3
-    assert {<<(delta)::size(4)>>, <<>>} == Encoder.calculate_option_header(delta)
+    assert {<<(delta)::size(4)>>, <<>>} == Encoder.encode_option_header(delta)
 
     delta = 11-delta # 8
-    assert {<<(delta)::size(4)>>, <<>>} == Encoder.calculate_option_header(delta)
+    assert {<<(delta)::size(4)>>, <<>>} == Encoder.encode_option_header(delta)
 
     delta = 60-delta # 52
-    assert {<<13::size(4)>>, <<(delta-13)::size(8)>>} == Encoder.calculate_option_header(delta)
+    assert {<<13::size(4)>>, <<(delta-13)::size(8)>>} == Encoder.encode_option_header(delta)
 
     delta = 600-delta # 548
-    assert {<<14::size(4)>>, <<(delta-269)::size(16)>>} == Encoder.calculate_option_header(delta)
+    assert {<<14::size(4)>>, <<(delta-269)::size(16)>>} == Encoder.encode_option_header(delta)
   end
 
   test "build options" do
