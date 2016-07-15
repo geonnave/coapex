@@ -22,6 +22,24 @@ defmodule Coapex.Registry do
     size1:          60
   ]
 
+  def options_table, do: %{
+1  => [critical: true,  unsafe: false, no_cache_key: false, repeatable: true , name: "If-Match",       format: :opaque, length: 0..8,    default:  nil],
+3  => [critical: true,  unsafe: true,  no_cache_key: nil  , repeatable: false, name: "Uri-Host",       format: :string, length: 1..255,  default:  nil],
+4  => [critical: false, unsafe: false, no_cache_key: false, repeatable: true , name: "ETag",           format: :opaque, length: 1..8,    default:  nil],
+5  => [critical: true,  unsafe: false, no_cache_key: false, repeatable: false, name: "If-None-Match",  format: :empty,  length: 0,       default:  nil],
+7  => [critical: true,  unsafe: true,  no_cache_key: nil  , repeatable: false, name: "Uri-Port",       format: :uint,   length: 0..2,    default:  nil],
+8  => [critical: false, unsafe: false, no_cache_key: false, repeatable: true , name: "Location-Path",  format: :string, length: 0..255,  default:  nil],
+11 => [critical: true,  unsafe: true,  no_cache_key: nil  , repeatable: true , name: "Uri-Path",       format: :string, length: 0..255,  default:  nil],
+12 => [critical: false, unsafe: false, no_cache_key: false, repeatable: false, name: "Content-Format", format: :uint,   length: 0..2,    default:  nil],
+14 => [critical: false, unsafe: true,  no_cache_key: nil  , repeatable: false, name: "Max-Age",        format: :uint,   length: 0..4,    default: 60],
+15 => [critical: true,  unsafe: true,  no_cache_key: nil  , repeatable: true , name: "Uri-Query",      format: :string, length: 0..255,  default:  nil],
+17 => [critical: true,  unsafe: false, no_cache_key: false, repeatable: false, name: "Accept",         format: :uint,   length: 0..2,    default:  nil],
+20 => [critical: false, unsafe: false, no_cache_key: false, repeatable: true , name: "Location-Query", format: :string, length: 0..255,  default:  nil],
+35 => [critical: true,  unsafe: true,  no_cache_key: nil  , repeatable: false, name: "Proxy-Uri",      format: :string, length: 1..1034, default:  nil],
+39 => [critical: true,  unsafe: true,  no_cache_key: nil  , repeatable: false, name: "Proxy-Scheme",   format: :string, length: 1..255,  default:  nil],
+60 => [critical: false, unsafe: false, no_cache_key: true , repeatable: false, name: "Size1",          format: :uint,   length: 0..4,    default:  nil]
+  }
+
   def content_formats, do: [
     "text/plain;": 0,
 #   "charset=utf-8": nil,

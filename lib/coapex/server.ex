@@ -1,7 +1,7 @@
 defmodule Coapex.Server do
   use GenServer
 
-  alias Coapex.{Message}
+  alias Coapex.{Message, Encoder, Decoder}
 
   @port 9999
 
@@ -14,9 +14,12 @@ defmodule Coapex.Server do
   end
 
   def handle_info(_msg = {:udp, socket, ip, port, data}, state) do
-    IO.inspect [ip, port, data]
-    # send msg to something
-    :gen_udp.send(socket, ip, port, "I'm here!\n")
+    try do
+      in_msg = Decoder.decode(data)
+      :gen_udp.send(socket, ip, port, data)
+    rescue
+      _ -> :gen_udp.send(socket, ip, port, "5.00 No!\n")
+    end
     {:noreply, state}
   end
 

@@ -33,7 +33,7 @@ defmodule DecoderTest do
     del = 13
     ext_del = delta - 13
     bin_opt = <<del::size(4), 1::4, ext_del::size(8), 4, 255>>
-    assert [{:size1, <<4>>}, _] = Decoder.decode_options(bin_opt, 8)
+    assert [{:size1, 4}, _] = Decoder.decode_options(bin_opt, 8)
 
     delta = 548 = 600 - 52 = @custom_option - delta
     del = 14

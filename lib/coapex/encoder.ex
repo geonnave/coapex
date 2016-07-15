@@ -24,7 +24,9 @@ defmodule Coapex.Encoder do
     type Confirmable (0), Non-confirmable (1), Acknowledgement (2), or
     Reset (3).
   """
-  def encode_type(type), do: <<Registry.types[type] :: size(2)>>
+  def encode_type(type) do
+    <<Registry.types[type]::size(2)>>
+  end
 
   @doc """
   The Token is used to match a response with a request.  The token
@@ -58,8 +60,10 @@ defmodule Coapex.Encoder do
     <<id::unsigned-integer-size(16)>>
   end
 
+  # TODO: review this
+  def encode_payload(nil), do: <<>>
   def encode_payload(payload) when is_binary(payload), do: payload
-  def encode_payload(payload), do: encode_value(:binary, payload)
+  def encode_payload(payload) when is_number(payload), do: :binary.encode_unsigned(payload)
 
   @doc """
   Each option instance in a message specifies the Option Number of the
@@ -116,9 +120,10 @@ defmodule Coapex.Encoder do
     delta = op - prev_delta
 
     value = encode_value(op, value)
+    value_len = String.length(value)
 
     {del, ext_del} = encode_option_header(delta)
-    {len, ext_len} = encode_option_header(String.length(value))
+    {len, ext_len} = encode_option_header(value_len)
 
     <<del::bitstring, len::bitstring,
       ext_del::bitstring, ext_len::bitstring,
@@ -152,13 +157,15 @@ defmodule Coapex.Encoder do
     {<<14::unsigned-integer-size(4)>>, <<(value-269)::unsigned-integer-size(16)>>}
   end
 
+  def encode_value(_, nil), do: <<>>
   def encode_value(op, value) when op in [12, 17] do
     Registry.content_formats[value] |> :binary.encode_unsigned
   end
-  def encode_value(_, nil), do: <<>>
-  def encode_value(_, value) when is_binary(value), do: value
-  def encode_value(_, value) when is_number(value) do
-    :binary.encode_unsigned(value)
+  def encode_value(op, value) do
+    case Registry.options_table[op][:format] do
+      :uint -> :binary.encode_unsigned(value)
+      _opaque_or_string -> value
+    end
   end
 
 end

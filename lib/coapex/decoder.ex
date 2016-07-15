@@ -56,7 +56,7 @@ defmodule Coapex.Decoder do
     value = decode_value(opt_number, value)
 
     opt_name = Registry.from(:options, opt_number) || opt_number
-    [{opt_name, value} | decode_options(rest, opt_number)]
+    [{opt_name, value} | decode_options(rest, real_delta)]
   end
 
   def decode_option_header(value, rest) when value in 0..12 do
@@ -72,8 +72,11 @@ defmodule Coapex.Decoder do
   def decode_value(op, <<value::8>>) when op in [12, 17] do
     Registry.from(:content_formats, value)
   end
-  def decode_value(_op, value) do
-    value
+  def decode_value(op, value) do
+    case Registry.options_table[op][:format] do
+      :uint -> :binary.decode_unsigned(value)
+      _opaque_or_string -> value
+    end
   end
 
 end
