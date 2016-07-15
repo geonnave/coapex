@@ -3,7 +3,7 @@ defmodule Coapex.Server do
 
   alias Coapex.{Message, Encoder, Decoder}
 
-  @port 9999
+  @port 9998
 
   @error_500 Message.init(code: :internal_server_error, type: :ack, msg_id: 1,
     options: [uri_host: @host, uri_port: @port])
@@ -19,13 +19,14 @@ defmodule Coapex.Server do
 
   def handle_info(_msg = {:udp, socket, ip, port, data}, state = %{socket: _sock, router: router}) do
     try do
-      in_msg = Decoder.decode(data)
+      data |> IO.inspect
+      in_msg = Decoder.decode(data) |> IO.inspect
       if !router do
         out_msg = %Message{in_msg | code: :internal_server_error} |> Encoder.encode
         :gen_udp.send(socket, ip, port, out_msg)
       else
         data = [udp_params: {socket, ip, port}, msg: in_msg]
-        router.delegate(data)
+        spawn(fn -> router.delegate(data) end)
       end
     rescue
       e ->

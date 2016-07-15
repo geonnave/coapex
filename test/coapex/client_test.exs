@@ -4,7 +4,7 @@ defmodule ClientTest do
   alias Coapex.{Server, Client, Message}
 
   @host "127.0.0.1"
-  @port 9999
+  @port 9998
   @uri "coap://#{@host}:#{@port}"
 
   setup do

@@ -2,7 +2,7 @@ defmodule Coapex.Client do
   alias Coapex.{Message, Encoder, Decoder}
 
   @host_erl {127,0,0,1}
-  @port 9999
+  @port 9998
 
   def do_request_sync(msg) do
     bin_msg = Encoder.encode(msg)

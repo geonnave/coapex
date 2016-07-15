@@ -10,7 +10,7 @@ defmodule Coapex.Decoder do
       code_class::3,
       code_detail::5,
       msg_id::16,
-      token::size(token_len),
+      token::binary-size(token_len),
       rest::binary
       >>) do
     code = decode_code(code_class, code_detail)
@@ -44,6 +44,9 @@ defmodule Coapex.Decoder do
     {options, payload}
   end
 
+  def decode_options(<<>>, _prev_opt_number) do
+    [{:payload, <<>>}]
+  end
   def decode_options(<<255, payload::binary>>, _prev_opt_number) do
     [{:payload, payload}]
   end

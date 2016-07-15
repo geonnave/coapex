@@ -4,17 +4,17 @@ defmodule ServerTest do
   alias Coapex.{Message, Encoder, Decoder, Registry, Server, Client}
 
   @host "127.0.0.1"
-  @port 9999
-
-  def send_resp(data, code, payload) do
-    {sock, ip, port} = data[:udp_params]
-    msg = data[:msg]
-    msg = %Message{msg | payload: payload}
-    bin_msg = Encoder.encode(msg)
-    :gen_udp.send(sock, ip, port, bin_msg)
-  end
+  @port 9998
 
   defmodule RouterA do
+    def send_resp(data, code, payload) do
+      {sock, ip, port} = data[:udp_params]
+      msg = data[:msg]
+      msg = %Coapex.Message{msg | payload: payload}
+      bin_msg = Coapex.Encoder.encode(msg)
+      :gen_udp.send(sock, ip, port, bin_msg)
+    end
+
     def delegate(data) do
       # TODO: implement match logic
       msg = data[:msg]
@@ -23,13 +23,13 @@ defmodule ServerTest do
     end
 
     def match(:get, path, data) do
-      ServerTest.send_resp(data, "2.05", "was a get! on path #{path |> inspect}")
+      send_resp(data, "2.05", "was a get! on path #{path |> inspect}")
     end
     def match(:post, path, data) do
-      ServerTest.send_resp(data, "2.05", "was a post! on path #{path |> inspect}")
+      send_resp(data, "2.05", "was a post! on path #{path |> inspect}")
     end
     def match(method, path, data) do
-      ServerTest.send_resp(data, "2.05", "was other method: #{method |> inspect} on path #{path |> inspect}")
+      send_resp(data, "2.05", "was other method: #{method |> inspect} on path #{path |> inspect}")
     end
   end
 
