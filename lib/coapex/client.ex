@@ -1,10 +1,25 @@
 defmodule Coapex.Client do
-  alias Coapex.{Message}
+  alias Coapex.{Message, Encoder, Decoder}
 
-  def request(msg) do
-    msg
+  @host_erl {127,0,0,1}
+  @port 9999
+
+  def do_request_sync(msg) do
+    bin_msg = Encoder.encode(msg)
+
+    {:ok, sock} = :gen_udp.open 0, [:binary]
+
+    :gen_udp.send(sock, @host_erl, @port, bin_msg)
+
+    resp_msg = receive do
+      {:udp, socket, ip, port, data} ->
+        data |> Decoder.decode
+    after
+      1000 -> :timeout |> IO.inspect
+    end
   end
 
+  # we don't use these functions yet
   def request(_method, _target_url, opts \\ [type: :con, options: []])
 
   def request(:get, target_uri, opts) do

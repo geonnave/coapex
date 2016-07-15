@@ -1,34 +1,55 @@
 defmodule ServerTest do
   use ExUnit.Case
 
-  alias Coapex.{Message, Encoder, Decoder, Registry, Server}
+  alias Coapex.{Message, Encoder, Decoder, Registry, Server, Client}
 
   @host "127.0.0.1"
-  @host_erl {127,0,0,1}
   @port 9999
 
+  def send_resp(data, code, payload) do
+    {sock, ip, port} = data[:udp_params]
+    msg = data[:msg]
+    msg = %Message{msg | payload: payload}
+    bin_msg = Encoder.encode(msg)
+    :gen_udp.send(sock, ip, port, bin_msg)
+  end
+
+  defmodule RouterA do
+    def delegate(data) do
+      # TODO: implement match logic
+      msg = data[:msg]
+      path = if m = msg.options[:uri_path], do: m |> URI.path_to_segments, else: ""
+      match(msg.code, path, data)
+    end
+
+    def match(:get, path, data) do
+      ServerTest.send_resp(data, "2.05", "was a get! on path #{path |> inspect}")
+    end
+    def match(:post, path, data) do
+      ServerTest.send_resp(data, "2.05", "was a post! on path #{path |> inspect}")
+    end
+    def match(method, path, data) do
+      ServerTest.send_resp(data, "2.05", "was other method: #{method |> inspect} on path #{path |> inspect}")
+    end
+  end
+
   setup do
-    Server.start_link
+    Server.start_link([router: RouterA])
     :ok
   end
 
-  test "echo socket server" do
+  test "server with RouterA" do
     msg = Message.init(code: :get, type: :con, msg_id: 1, payload: "swarm!",
       options: [uri_host: @host, uri_port: @port, accept: :"text/plain;", content_format: :"text/plain;"])
+    resp = Client.do_request_sync(msg) |> IO.inspect
 
-    bin_msg = Encoder.encode(msg)
+    msg = Message.init(code: :get, type: :con, msg_id: 1, payload: "swarm!",
+      options: [uri_host: @host, uri_port: @port, uri_path: "foo/bar", accept: :"text/plain;", content_format: :"text/plain;"])
+    resp = Client.do_request_sync(msg) |> IO.inspect
 
-    {:ok, sock} = :gen_udp.open 0, [:binary]
-    :gen_udp.send(sock, @host_erl, @port, bin_msg)
-
-    resp_msg = receive do
-      {:udp, socket, ip, port, data} ->
-        data
-    after
-      1000 -> :timeout |> IO.inspect
-    end
-
-    assert msg = Decoder.decode(resp_msg)
-
+    msg = Message.init(code: :post, type: :con, msg_id: 1, payload: "swarm!",
+      options: [uri_host: @host, uri_port: @port, accept: :"text/plain;", content_format: :"text/plain;"])
+    resp = Client.do_request_sync(msg) |> IO.inspect
   end
+
 end
