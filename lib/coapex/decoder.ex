@@ -59,7 +59,7 @@ defmodule Coapex.Decoder do
     value = decode_value(opt_number, value)
 
     opt_name = Registry.from(:options, opt_number) || opt_number
-    [{opt_name, value} | decode_options(rest, real_delta)]
+    [{opt_name, value} | decode_options(rest, opt_number)]
   end
 
   def decode_option_header(value, rest) when value in 0..12 do

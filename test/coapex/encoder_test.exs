@@ -66,15 +66,15 @@ defmodule EncoderTest do
 
   test "build options" do
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_uripath, len_uripath] = [@path_option - delta_urihost, String.length("baz")]
+    [delta_uripath, len_uripath] = [@path_option - @host_option, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
     opts = Coapex.Encoder.build_options [{@host_option, "foo.bar"}, {@path_option, "baz"}]
     assert expected == opts
 
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_uriport, len_uriport] = [@port_option - delta_urihost, 1]
-    [delta_uripath, len_uripath] = [@path_option - delta_uriport, String.length("baz")]
+    [delta_uriport, len_uriport] = [@port_option - @host_option, 1]
+    [delta_uripath, len_uripath] = [@path_option - @port_option, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uriport::size(4), len_uriport::size(4), 88,
                  delta_uripath::size(4), len_uripath::size(4), "baz">>
@@ -86,15 +86,15 @@ defmodule EncoderTest do
     bin_port = :binary.encode_unsigned 9999
 
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_uriport, len_uriport] = [@port_option - delta_urihost, String.length(bin_port)]
+    [delta_uriport, len_uriport] = [@port_option - @host_option, String.length(bin_port)]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
                  delta_uriport::size(4), len_uriport::size(4), bin_port::binary >>
 
     assert expected == Encoder.encode_options([uri_port: 9999, uri_host: "foo.bar"])
 
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_uriport, len_uriport] = [@port_option - delta_urihost, String.length(bin_port)]
-    [delta_uripath, len_uripath] = [@path_option - delta_uriport, String.length("baz")]
+    [delta_uriport, len_uriport] = [@port_option - @host_option, String.length(bin_port)]
+    [delta_uripath, len_uripath] = [@path_option - @port_option, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
       delta_uriport::size(4), len_uriport::size(4), bin_port::binary,
       delta_uripath::size(4), len_uripath::size(4), "baz">>
@@ -105,8 +105,8 @@ defmodule EncoderTest do
   test "set BinaryMessage custom options" do
     custom_option = 9
     [delta_urihost, len_urihost] = [@host_option, String.length("foo.bar")]
-    [delta_custom, len_custom] = [custom_option - delta_urihost, String.length("cat")]
-    [delta_uripath, len_uripath] = [@path_option - delta_custom, String.length("baz")]
+    [delta_custom, len_custom] = [custom_option - @host_option, String.length("cat")]
+    [delta_uripath, len_uripath] = [@path_option - custom_option, String.length("baz")]
     expected = <<delta_urihost::size(4), len_urihost::size(4), "foo.bar",
       delta_custom::4, len_custom::4, "cat",
       delta_uripath::size(4), len_uripath::size(4), "baz">>

@@ -81,7 +81,7 @@ defmodule Coapex.Encoder do
       end
     end)
     |> Stream.reject(&is_nil/1)
-    |> Enum.sort(fn({o1, _v1}, {o2, _v2}) -> o1 < o2 end)
+    |> Enum.sort(fn({o1, _v1}, {o2, _v2}) -> o1 <= o2 end)
     |> build_options
   end
 
@@ -116,8 +116,8 @@ defmodule Coapex.Encoder do
   """
   def build_options(options), do: build_options(options, 0)
   def build_options([], _prev_delta), do: <<>>
-  def build_options([{op, value} | rest], prev_delta) do
-    delta = op - prev_delta
+  def build_options([{op, value} | rest], prev_op) do
+    delta = op - prev_op
 
     value = encode_value(op, value)
     value_len = String.length(value)
@@ -127,7 +127,7 @@ defmodule Coapex.Encoder do
 
     <<del::bitstring, len::bitstring,
       ext_del::bitstring, ext_len::bitstring,
-      value::bitstring>> <> build_options(rest, delta)
+      value::bitstring>> <> build_options(rest, op)
   end
 
   @doc """

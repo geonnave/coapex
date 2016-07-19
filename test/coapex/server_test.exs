@@ -10,7 +10,7 @@ defmodule ServerTest do
     def send_resp(data, code, payload) do
       {sock, ip, port} = data[:udp_params]
       msg = data[:msg]
-      msg = %Coapex.Message{msg | payload: payload}
+      msg = %Coapex.Message{msg | payload: payload, code: code}
       bin_msg = Coapex.Encoder.encode(msg)
       :gen_udp.send(sock, ip, port, bin_msg)
     end

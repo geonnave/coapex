@@ -14,7 +14,7 @@ defmodule Coapex.Message do
     type: nil,
     token: nil,
     msg_id: nil,
-    options: [],
+    options: [uri_port: 5683],
     payload: nil
 
   def init(opts) do
