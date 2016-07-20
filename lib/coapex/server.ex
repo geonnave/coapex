@@ -17,16 +17,19 @@ defmodule Coapex.Server do
     {:ok, %{socket: socket, router: router}}
   end
 
-  def handle_info(_msg = {:udp, socket, ip, port, data}, state = %{socket: _sock, router: router}) do
+  def handle_info(_msg = {:udp, socket, ip, port, data}, state) do
     try do
+      "====new message====" |> IO.inspect
       data |> IO.inspect
       in_msg = Decoder.decode(data) |> IO.inspect
-      if !router do
+      if !state.router do
         out_msg = %Message{in_msg | code: :internal_server_error} |> Encoder.encode
         :gen_udp.send(socket, ip, port, out_msg)
       else
         data = [udp_params: {socket, ip, port}, msg: in_msg]
-        spawn(fn -> router.delegate(data) end)
+#       spawn(fn -> router.delegate(data) end)
+        state.router.delegate(data)
+        IO.inspect "TEST"
       end
     rescue
       e ->

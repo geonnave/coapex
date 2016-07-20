@@ -16,9 +16,8 @@ defmodule ServerTest do
     end
 
     def delegate(data) do
-      # TODO: implement match logic
       msg = data[:msg]
-      path = if m = msg.options[:uri_path], do: m |> URI.path_to_segments, else: ""
+      path = Keyword.get_values(msg.options, :uri_path)
       match(msg.code, path, data)
     end
 
