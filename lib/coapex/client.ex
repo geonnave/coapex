@@ -1,21 +1,29 @@
 defmodule Coapex.Client do
+  require Logger
+
   alias Coapex.{Message, Encoder, Decoder}
 
   @host_erl {127,0,0,1}
   @port 9998
 
+  @client_timeout 1_000
+
   def do_request_sync(msg) do
+    Logger.debug "=>> #{inspect msg}"
     bin_msg = Encoder.encode(msg)
 
-    {:ok, sock} = :gen_udp.open 0, [:binary]
-
+    {:ok, sock} = :gen_udp.open(0, [:binary])
     :gen_udp.send(sock, @host_erl, @port, bin_msg)
 
     resp_msg = receive do
       {:udp, socket, ip, port, data} ->
-        data |> Decoder.decode
+        resp = data |> Decoder.decode
+        Logger.debug "<<= #{inspect resp}"
+        resp
     after
-      1000 -> :timeout |> IO.inspect
+      @client_timeout ->
+        Logger.debug "timeout! (after #{@client_timeout})"
+        :timeout
     end
   end
 

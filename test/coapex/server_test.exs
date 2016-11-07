@@ -14,15 +14,15 @@ defmodule ServerTest do
   test "server with RouterA" do
     msg = Message.init(code: :get, type: :con, msg_id: 1, payload: "swarm!",
       options: [uri_host: @host, uri_port: @port, accept: :"text/plain;", content_format: :"text/plain;"])
-    resp = Client.do_request_sync(msg) |> IO.inspect
+    resp = Client.do_request_sync(msg)
 
     msg = Message.init(code: :get, type: :con, msg_id: 1, payload: "swarm!",
       options: [uri_host: @host, uri_port: @port, uri_path: "foo/bar", accept: :"text/plain;", content_format: :"text/plain;"])
-    resp = Client.do_request_sync(msg) |> IO.inspect
+    resp = Client.do_request_sync(msg)
 
     msg = Message.init(code: :post, type: :con, msg_id: 1, payload: "swarm!",
       options: [uri_host: @host, uri_port: @port, accept: :"text/plain;", content_format: :"text/plain;"])
-    resp = Client.do_request_sync(msg) |> IO.inspect
+    resp = Client.do_request_sync(msg)
   end
 
 end
