@@ -9,8 +9,12 @@ defmodule Coapex.Server do
 
   @error_500 Message.init(code: :internal_server_error, type: :ack, msg_id: 1)
 
-  def start_link(opts \\ [router: @default_router]) do
-    GenServer.start_link(__MODULE__, opts[:router], name: __MODULE__)
+  def start_link(opts \\ []) do
+    opts =
+      [router: @default_router, port: @default_port]
+      |> Keyword.merge(opts)
+
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   def delegate(non_conn, router) do
@@ -26,9 +30,9 @@ defmodule Coapex.Server do
   end
 
   # GenServer callbacks
-  def init(router) do
-    {:ok, socket} = :gen_udp.open(@default_port, [:binary])
-    {:ok, %{socket: socket, router: router}}
+  def init(opts) do
+    {:ok, socket} = :gen_udp.open(opts[:port], [:binary])
+    {:ok, %{socket: socket, router: opts[:router]}}
   end
 
   def handle_info(_msg = {:udp, socket, ip, port, data}, state) do
