@@ -32,9 +32,8 @@ defmodule Coapex.Message do
     }
   end
 
-  def request(uri, args \\ []) do
-    code = Keyword.get(args, :code, :get)
-    args = put_in(args[:code], code)
+  def request(method, uri, args \\ []) when is_atom(method) do
+    args = put_in(args[:code], method)
 
     %URI{host: host, path: path, port: port, query: query,
          scheme: "coap", fragment: nil} = URI.parse(uri)
@@ -59,6 +58,11 @@ defmodule Coapex.Message do
     args
     |> Keyword.put(:options, options_field)
     |> init()
+  end
+
+  def response(code, peer, args \\ []) do
+    args = put_in(args[:code], method)
+    # TODO
   end
 
   def random_id do

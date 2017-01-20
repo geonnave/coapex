@@ -27,4 +27,11 @@ defmodule MessageTest do
     assert msg == Message.decode(bin_msg)
   end
 
+  test "create a request" do
+    req = Message.request(:get, "coap://192.168.2.192:5000/broker/registry")
+    assert %Message{code: :get} = req
+    assert "192.168.2.192" = req.options[:uri_host]
+    assert 5000 = req.options[:uri_port]
+    assert ["broker", "registry"] = Keyword.get_values(req.options, :uri_path)
+  end
 end
