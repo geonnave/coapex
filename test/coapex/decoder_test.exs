@@ -15,7 +15,7 @@ defmodule DecoderTest do
 
     bin_msg = Encoder.encode(msg)
 
-    assert msg == Decoder.decode(bin_msg)
+    assert msg = Decoder.decode(bin_msg)
   end
 
   test "decode option delta" do

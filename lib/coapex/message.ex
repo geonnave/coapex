@@ -17,17 +17,52 @@ defmodule Coapex.Message do
     options: [uri_port: 5683],
     payload: nil
 
-  def init(opts) do
-    # TODO: validate all content in `opts`
+  def init(args) do
+    options_field = Keyword.get(args, :options, [])
+    options_field = Keyword.merge([uri_port: 5683], options_field)
+
     %Coapex.Message{
       version: 1,
-      code: opts[:code],
-      type: opts[:type],
-      token: opts[:token],
-      msg_id: opts[:msg_id],
-      options: opts[:options],
-      payload: opts[:payload]
+      code: args[:code],
+      type: args[:type],
+      token: args[:token],
+      msg_id: Keyword.get(args, :msg_id, random_id()),
+      options: options_field,
+      payload: args[:payload]
     }
+  end
+
+  def request(uri, args \\ []) do
+    code = Keyword.get(args, :code, :get)
+    args = put_in(args[:code], code)
+
+    %URI{host: host, path: path, port: port, query: query,
+         scheme: "coap", fragment: nil} = URI.parse(uri)
+
+    path_segments =
+      path
+      |> URI.path_to_segments()
+      |> Enum.reverse()
+      |> Stream.reject(&(&1 == ""))
+      |> Enum.map(&({:uri_path, &1}))
+
+    query_segments = Enum.map(query || [], fn({param, value}) -> "#{param}=#{value}" end)
+
+    uri_opts = [uri_host: host, uri_port: port] ++ path_segments ++ query_segments
+    options_field =
+      if args[:options] do
+        Keyword.merge(args[:options], uri_opts)
+      else
+        uri_opts
+      end
+
+    args
+    |> Keyword.put(:options, options_field)
+    |> init()
+  end
+
+  def random_id do
+    System.unique_integer([:positive])
   end
 
   def encode(message = %Coapex.Message{}) do
