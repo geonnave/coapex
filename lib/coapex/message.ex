@@ -61,7 +61,7 @@ defmodule Coapex.Message do
   end
 
   def response(code, peer, args \\ []) do
-    args = put_in(args[:code], method)
+    args = put_in(args[:code], code)
     # TODO
   end
 
