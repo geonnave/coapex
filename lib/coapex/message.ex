@@ -15,7 +15,7 @@ defmodule Coapex.Message do
     token: nil,
     msg_id: nil,
     options: [uri_port: 5683],
-    payload: nil
+    payload: ""
 
   def init(args) do
     options_field = Keyword.get(args, :options, [])
@@ -28,7 +28,7 @@ defmodule Coapex.Message do
       token: args[:token],
       msg_id: Keyword.get(args, :msg_id, random_id()),
       options: options_field,
-      payload: args[:payload]
+      payload: Keyword.get(args, :payload, "")
     }
   end
 

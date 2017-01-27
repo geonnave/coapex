@@ -37,10 +37,8 @@ defmodule Coapex.Decoder do
   def decode_options_and_payload(rest) do
     options_and_payload = decode_options(rest, 0)
     options = options_and_payload |> Keyword.delete(:payload)
-    payload = case options_and_payload[:payload] do
-                "" -> nil
-                payload -> payload
-    end
+    payload = options_and_payload[:payload]
+
     {options, payload}
   end
 
