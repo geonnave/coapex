@@ -16,6 +16,6 @@ defmodule Coapex.Mixfile do
   end
 
   defp deps do
-    [{:credo, "~> 0.3", only: [:dev, :test]}]
+    []
   end
 end

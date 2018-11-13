@@ -8,14 +8,14 @@ defmodule Coapex.Message do
   specific `options` params (e.g Uri-Host, Uri-Port, etc.)
   """
 
-  #defstruct version: <<1::2>>, TODO: why this raises an error???
+  # defstruct version: <<1::2>>, TODO: why this raises an error???
   defstruct version: 1,
-    code: nil,
-    type: nil,
-    token: nil,
-    msg_id: nil,
-    options: [uri_port: 5683],
-    payload: ""
+            code: nil,
+            type: nil,
+            token: nil,
+            msg_id: nil,
+            options: [uri_port: 5683],
+            payload: ""
 
   def init(args) do
     options_field = Keyword.get(args, :options, [])
@@ -35,19 +35,20 @@ defmodule Coapex.Message do
   def request(method, uri, args \\ []) when is_atom(method) do
     args = put_in(args[:code], method)
 
-    %URI{host: host, path: path, port: port, query: query,
-         scheme: "coap", fragment: nil} = URI.parse(uri)
+    %URI{host: host, path: path, port: port, query: query, scheme: "coap", fragment: nil} =
+      URI.parse(uri)
 
     path_segments =
       path
-      |> URI.path_to_segments()
+      |> path_to_segments()
       |> Enum.reverse()
       |> Stream.reject(&(&1 == ""))
-      |> Enum.map(&({:uri_path, &1}))
+      |> Enum.map(&{:uri_path, &1})
 
-    query_segments = Enum.map(query || [], fn({param, value}) -> "#{param}=#{value}" end)
+    query_segments = Enum.map(query || [], fn {param, value} -> "#{param}=#{value}" end)
 
     uri_opts = [uri_host: host, uri_port: port] ++ path_segments ++ query_segments
+
     options_field =
       if args[:options] do
         Keyword.merge(args[:options], uri_opts)
@@ -70,11 +71,17 @@ defmodule Coapex.Message do
   end
 
   def encode(message = %Coapex.Message{}) do
-    message |> Coapex.Encoder.encode
+    message |> Coapex.Encoder.encode()
   end
 
   def decode(bin_message = <<_::binary>>) do
-    bin_message |> Coapex.Decoder.decode
+    bin_message |> Coapex.Decoder.decode()
   end
 
+  defp path_to_segments(path) do
+    path
+    |> String.split("/")
+    |> Stream.reject(& &1 == "")
+    |> Enum.reverse()
+  end
 end

@@ -6,7 +6,7 @@ defmodule Coapex.Client do
   @host_erl {127,0,0,1}
   @port 4001
 
-  @client_timeout 3_000
+  @client_timeout 1_000
 
   def do_request_sync(msg, ip \\ @host_erl, port \\ @port) do
     Logger.debug "=>> #{inspect msg}"
